@@ -27,12 +27,10 @@ def writeComposer(names,directory="composer"):
     print("Finished")
 
 
+#Get the items array from the data
 items = requests.get('https://api.github.com/search/repositories?q=language%3Aphp+sort%3Astars&per_page=100').json()["items"]
 names = []
 for item in items:
     names.append(item["full_name"])
 writeComposer(names)
 
-
-# with open('names.json') as data_file:
-#     namesData = json.load(data_file)
