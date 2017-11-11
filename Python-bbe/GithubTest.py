@@ -6,6 +6,8 @@ import os
 # print(g.rate_limiting)
 # repos = g.search_repositories('language:php',sort='stars')
 
+
+##Function to download composer.json files. Using raw.githubusercontent.com
 def downloadComposerJson(name):
     r = requests.get('https://raw.githubusercontent.com/' + name + '/master/composer.json')
     if r.status_code != 404:
@@ -13,6 +15,7 @@ def downloadComposerJson(name):
     else:
         return 404
 
+## This funciton write all the composer.json file to a directory
 def writeComposer(names,directory="composer"):
     if(not os.path.isdir(directory)):
         os.makedirs(directory)
