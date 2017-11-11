@@ -1,2 +1,4 @@
 .idea
-*.pyc.composer.names.json
+*.pyc
+composer
+names.json
