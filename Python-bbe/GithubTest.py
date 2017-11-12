@@ -1,7 +1,7 @@
 from github import Github
 import requests, json
-import os
-
+import os, operator
+from requests.auth import HTTPBasicAuth
 # g = Github()
 # print(g.rate_limiting)
 # repos = g.search_repositories('language:php',sort='stars')
@@ -26,11 +26,50 @@ def writeComposer(names,directory="composer"):
                 json.dump(composerFile, outfile)
     print("Finished")
 
+def getDependencies(pages=5):
+    names = []
+    data = {}
+    # requests.get('https://api.github.com/users/whatever?client_id=a4c5922e2b8eaaa27512&client_secret=899f8eda14024b57a4d101aff2a7ef61af0d9807');
+    print("Gathering data")
+    for i in xrange(1,pages+1):
+        items = requests.get('https://api.github.com/search/repositories?q=language%3Aphp+fork%3Afalse+sort%3Astars&per_page=100&page='+str(i)).json()["items"]
+        print(i)
+        for item in items:
+            names.append(item["full_name"])
+    for name in names:
+        json = downloadComposerJson(name)
+        if json != 404:
+            # print(name)
+            if("require-dev" in json and "require" in json):
+                # require = {**json["require"],**json["require-dev"]}
+                l1 = json["require"].keys()
+                l2 = json["require-dev"].keys()
+                require = list(set(l1 + l2))
+            elif("require" in json):
+                require=json["require"]
+            else:
+                require=[]
+            for dependency in require:
+                data[dependency.encode("ascii")] = 1 if dependency not in data else data[dependency] + 1
+    return data
+
+
+
 
 #Get the items array from the data
-items = requests.get('https://api.github.com/search/repositories?q=language%3Aphp+sort%3Astars&per_page=100').json()["items"]
-names = []
-for item in items:
-    names.append(item["full_name"])
-writeComposer(names)
+# items = requests.get('https://api.github.com/search/repositories?q=language%3Aphp+sort%3Astars&per_page=100&page=15').json()["items"]
+# names = []
+# for item in items:
+#     names.append(item["full_name"])
+# print(names)
+# writeComposer(names)
 
+
+
+require = getDependencies(10)
+with open('dependencies.json', 'w') as outfile:
+    json.dump(require, outfile)
+
+data = json.load(open('dependencies.json'))
+top = dict(sorted(data.items(), key=operator.itemgetter(1), reverse=True)[:101])
+top.__delitem__('php')
