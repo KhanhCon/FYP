@@ -53,6 +53,11 @@ def getDependencies(pages=5):
                 data[dependency.encode("ascii")] = 1 if dependency not in data else data[dependency] + 1
     return data
 
+#Date range 2015-01-01..2016-01-01
+'https://api.github.com/search/repositories?q=language:php+stars:%3E50+created:2013-01-01..2013-09-20'
+# fork:false
+# stars:>50
+#todo: sort result by created_at date
 
 
 
