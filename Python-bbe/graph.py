@@ -39,16 +39,43 @@ theGraph = db.graphs["github_test"]
 #
 # theGraph.link('version', h1, h2, {})
 
-def downloadComposerJson(name):
-    r = requests.get('https://raw.githubusercontent.com/' + name + '/master/composer.json')
+
+def getHistory(name, file='composer.json'):
+
+    history = requests.get('https://api.github.com/repos/'+ name + '/commits?path='+ file).json()
+    for h in history:
+        yield h['sha'], h['commit']['author']['date'].split('T')[0].replace('-','')[-6:]
+
+def downloadComposerJson(name, SHA_number):
+    r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
     if r.status_code != 404:
-        return r.json()
+        try:
+            return r.json()
+        except ValueError:
+            return 404
     else:
         return 404
 
-def getDependencies(name, graph, SHA_number):
 
-    json = downloadComposerJson(name)
+def getDependencies(name, graph, SHA_number, commit_date):
+    #commit_date yy-mm-dd
+
+    def contains(collection, key):
+        """if doc in collection"""
+        try:
+            collection.fetchDocument(key, rawResults=False)
+            return True
+        except KeyError as e:
+            return False
+
+    def createVertex(collection,graph, key):
+        """if doc in collection"""
+        try:
+            return collection.fetchDocument(key, rawResults=False)
+        except KeyError as e:
+            return graph
+
+    json = downloadComposerJson(name,SHA_number)
     if json != 404:
         # print(name)
         if("require-dev" in json and "require" in json):
@@ -62,23 +89,68 @@ def getDependencies(name, graph, SHA_number):
         elif("require" in json):
             require=json["require"]
         else:
-            print("wrong")
+            print("@@")
+            return None
+    else:
+        print("@@")
+        return None
 
-    if not db["libraries"][name.replace('/','_')]: #Wrong. Check if already exists
+    containLibrary = contains(db["libraries"],name.replace('/','_'))
+    if not containLibrary: #Wrong. Check if already exists
         project = graph.createVertex('libraries', {"_key": name.replace('/','_')})  #Check if the name is valid
-    SHA = db["revisions"][SHA_number]
-    if not SHA:
-        SHA = graph.createVertex('revisions', {"_key": SHA_number}) #Replace with SHA
-        graph.link('version', project, SHA, {})
+    else:
+        project = db["libraries"][name.replace('/','_')]
+    # if not contains(db["revisions"],SHA_number):
+
+    containSHA = contains(db["revisions"],SHA_number)
+    if not containSHA: #Wrong. Check if already exists
+        SHA = graph.createVertex('revisions', {"_key": SHA_number, "date": commit_date})  # Replace with SHA
+    else:
+        SHA = db["revisions"][SHA_number]
+    # SHA = graph.createVertex('revisions', {"_key": SHA_number}) #Replace with SHA
+    if not containSHA or not containLibrary:
+        graph.link('version', project, SHA, {"date": commit_date})
 
     for dependency_name, version in require.iteritems():
-        dependency = db["libraries"][dependency_name.replace('/', '_')]
-        if not dependency:
-            dependency = graph.createVertex('libraries', {"_key":dependency_name.replace('/','_')})
-        graph.link('uses', SHA, dependency, {"version": version})  #Need version
 
-getDependencies('laravel/laravel', theGraph, "master_for_now")
+        containDependency = contains(db["libraries"],dependency_name.replace('/','_'))
+        if not containDependency:
+            dependency = graph.createVertex('libraries', {"_key":dependency_name.replace('/','_')})
+        else:
+            dependency = db["libraries"][dependency_name.replace('/','_')]
+        if not containSHA or not containDependency:
+            graph.link('uses', SHA, dependency, {"version": version})  #Need version
+
+def getRepoNames():
+    #For prototyping purpose
+    items = requests.get(
+        'https://api.github.com/search/repositories?q=language:php+stars:>500&per_page=10').json()["items"]
+    for item in items:
+        # names.append(item["full_name"])
+        yield item["full_name"].encode('ascii')
+
+# getDependencies('laravel/laravel', theGraph, "60de3a5670c4a3bf5fb96433828b6aadd7df0e53")
+# for sha, date in getHistory('facebook/react', file='composer.json'):
+#     getDependencies('facebook/react', theGraph, sha,date)
+
+
+
+def fetchData(repoName,graph, fileName='composer.json'):
+    for sha, date in getHistory(repoName, file=fileName):
+        print sha
+        getDependencies(repoName, graph, sha, date)
+
+getDependencies('domnikl/DesignPatternsPHP',theGraph,'620c9040a89fb2d5a58744f5c186872d9528a769','185020')
+
+for name in getRepoNames():
+    print(name)
+    fetchData(name, theGraph, fileName='composer.json')
+
+
 
 # json = downloadComposerJson('laravel/laravel')
 # print(json["require"])
+
+# for version in  db['libraries']['laravel_laravel'].getOutEdges(db['version']):
+#     print version["date"]
 
