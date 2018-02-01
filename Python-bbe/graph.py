@@ -3,6 +3,7 @@ import requests, json
 import os, operator
 from requests.auth import HTTPBasicAuth
 
+from heapq import heappush, heappop
 from pyArango.collection import Collection, Field, Edges
 from pyArango.graph import Graph, EdgeDefinition
 
@@ -42,7 +43,7 @@ theGraph = db.graphs["github_test"]
 
 def getHistory(name, file='composer.json'):
 
-    history = requests.get('https://api.github.com/repos/'+ name + '/commits?path='+ file).json()
+    history = requests.get('https://api.github.com/repos/'+ name + '/commits?path='+ file + '&per_page=10').json()
     for h in history:
         yield h['sha'], h['commit']['author']['date'].split('T')[0].replace('-','')[-6:]
 
@@ -57,7 +58,7 @@ def downloadComposerJson(name, SHA_number):
         return 404
 
 
-def getDependencies(name, graph, SHA_number, commit_date):
+def fetchDependencies(name, graph, SHA_number, commit_date):
     #commit_date yy-mm-dd
 
     def contains(collection, key):
@@ -95,6 +96,7 @@ def getDependencies(name, graph, SHA_number, commit_date):
         print("@@")
         return None
 
+
     containLibrary = contains(db["libraries"],name.replace('/','_'))
     if not containLibrary: #Wrong. Check if already exists
         project = graph.createVertex('libraries', {"_key": name.replace('/','_')})  #Check if the name is valid
@@ -113,7 +115,7 @@ def getDependencies(name, graph, SHA_number, commit_date):
 
     for dependency_name, version in require.iteritems():
 
-        containDependency = contains(db["libraries"],dependency_name.replace('/','_'))
+        containDependency = contains(db["libraries"],dependency_name.replace('/','_').encode("ascii"))
         if not containDependency:
             dependency = graph.createVertex('libraries', {"_key":dependency_name.replace('/','_')})
         else:
@@ -138,19 +140,85 @@ def getRepoNames():
 def fetchData(repoName,graph, fileName='composer.json'):
     for sha, date in getHistory(repoName, file=fileName):
         print sha
-        getDependencies(repoName, graph, sha, date)
+        print date
+        fetchDependencies(repoName, graph, sha, date)
 
-getDependencies('domnikl/DesignPatternsPHP',theGraph,'620c9040a89fb2d5a58744f5c186872d9528a769','185020')
+# getDependencies('domnikl/DesignPatternsPHP',theGraph,'620c9040a89fb2d5a58744f5c186872d9528a769','185020')
 
-for name in getRepoNames():
-    print(name)
-    fetchData(name, theGraph, fileName='composer.json')
+# for name in getRepoNames():
+#     print(name)
+#     fetchData(name, theGraph, fileName='composer.json')
 
-
+# fetchData('laravel/laravel', theGraph, fileName='composer.json')
 
 # json = downloadComposerJson('laravel/laravel')
 # print(json["require"])
 
-# for version in  db['libraries']['laravel_laravel'].getOutEdges(db['version']):
+def getEarlierDate(date1, date2):
+    if int(date1) <= int(date2):
+        return date1
+    else:
+        return date2
+
+def getVersion(edges, date):
+    # date = edges[0]["date"]
+    revision_date = 0
+    sha = None
+    for edge in edges:
+        if int(edge["date"])<=int(date):
+            if int(edge["date"]) >= int(revision_date):
+                revision_date = int(edge["date"])
+                sha = edge["_to"]
+    return sha,revision_date
+
+def getDependencies(document, date):
+    revision, revision_date = getVersion(document.getOutEdges(db['version']), date)
+    dependencies = {}
+    if revision == None:
+        return None
+    for edge in db[revision.split('/')[0]][revision.split('/')[1]].getOutEdges(db['uses']):
+        print edge["_to"].split('/')[1]
+        print edge["version"]
+        dependencies[edge["_to"].split('/')[1]] = edge["version"]
+    return dependencies
+
+
+def getUsage(name,date):
+    sources = set()
+    for edge in db['libraries'][name].getInEdges(db['uses']):
+        revision = db['revisions'][edge["_from"].split('/')[1]]
+        if int(revision["date"]) < date:
+            try:
+                sources.add(revision.getInEdges(db['version'])[0]['_from'])
+            except IndexError:
+                continue
+    return len(sources)
+
+def getTopTen(date):
+    heap = []
+    for library in db['libraries'].fetchAll():
+        heappush(heap, (getUsage(library._key, date), library._key.encode('ascii')))
+
+    for _ in xrange(0,9):
+        print (heappop(heap))
+
+
+getTopTen('190101')
+
+
+# print getUsage('laravel_laravel','180202') #IMPORTANT!!
+
+    # print revision_date
+# for version in db['libraries']['laravel_laravel'].getOutEdges(db['version']):
 #     print version["date"]
+#     print version["_to"]
+#
+# print getVersion(db['libraries']['laravel_laravel'].getOutEdges(db['version']),'170201')
+
+# print getEarlierDate('180103','180728')
+
+# print getVersion(db['libraries']['laravel_laravel'].getOutEdges(db['version']))
+
+# print getDependencies(db['libraries']['laravel_laravel'],'170804') #IMPORTANT!!
+
 
