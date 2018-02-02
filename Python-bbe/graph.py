@@ -4,6 +4,7 @@ import os, operator
 from requests.auth import HTTPBasicAuth
 
 from heapq import heappush, heappop
+import heapq
 from pyArango.collection import Collection, Field, Edges
 from pyArango.graph import Graph, EdgeDefinition
 
@@ -43,7 +44,7 @@ theGraph = db.graphs["github_test"]
 
 def getHistory(name, file='composer.json'):
 
-    history = requests.get('https://api.github.com/repos/'+ name + '/commits?path='+ file + '&per_page=10').json()
+    history = requests.get('https://api.github.com/repos/'+ name + '/commits?path='+ file + '&per_page=50').json()
     for h in history:
         yield h['sha'], h['commit']['author']['date'].split('T')[0].replace('-','')[-6:]
 
@@ -126,7 +127,7 @@ def fetchDependencies(name, graph, SHA_number, commit_date):
 def getRepoNames():
     #For prototyping purpose
     items = requests.get(
-        'https://api.github.com/search/repositories?q=language:php+stars:>500&per_page=10').json()["items"]
+        'https://api.github.com/search/repositories?q=language:php+stars:>500&per_page=50').json()["items"]
     for item in items:
         # names.append(item["full_name"])
         yield item["full_name"].encode('ascii')
@@ -177,8 +178,8 @@ def getDependencies(document, date):
     if revision == None:
         return None
     for edge in db[revision.split('/')[0]][revision.split('/')[1]].getOutEdges(db['uses']):
-        print edge["_to"].split('/')[1]
-        print edge["version"]
+        # print edge["_to"].split('/')[1]
+        # print edge["version"]
         dependencies[edge["_to"].split('/')[1]] = edge["version"]
     return dependencies
 
@@ -187,7 +188,7 @@ def getUsage(name,date):
     sources = set()
     for edge in db['libraries'][name].getInEdges(db['uses']):
         revision = db['revisions'][edge["_from"].split('/')[1]]
-        if int(revision["date"]) < date:
+        if int(revision["date"]) < int(date):
             try:
                 sources.add(revision.getInEdges(db['version'])[0]['_from'])
             except IndexError:
@@ -195,15 +196,20 @@ def getUsage(name,date):
     return len(sources)
 
 def getTopTen(date):
-    heap = []
+    rank = []
     for library in db['libraries'].fetchAll():
-        heappush(heap, (getUsage(library._key, date), library._key.encode('ascii')))
+        rank.append((getUsage(library._key, date), library._key.encode('ascii')))
+    for l in heapq.nlargest(20, rank,key=lambda e:e[0]):
+        print l
 
-    for _ in xrange(0,9):
-        print (heappop(heap))
+#fetch Data
+# for name in getRepoNames():
+#     print(name)
+#     fetchData(name, theGraph, fileName='composer.json')
 
+# print getDependencies(db['libraries']['laravel_laravel'],'180103') #IMPORTANT!!
 
-getTopTen('190101')
+getTopTen('160201')
 
 
 # print getUsage('laravel_laravel','180202') #IMPORTANT!!
