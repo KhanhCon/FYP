@@ -202,6 +202,19 @@ def getTopTen(date):
     for l in heapq.nlargest(20, rank,key=lambda e:e[0]):
         print l
 
+def getUsage2(name):
+    aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/"+name+"' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
+
+    queryResult = db.AQLQuery(aql_count, rawResults=True, batchSize=100)
+    return queryResult[0]
+
+def getTop():
+    rank = []
+    for library in db['libraries'].fetchAll():
+        rank.append((getUsage2(library._key), library._key.encode('ascii')))
+    for l in heapq.nlargest(20, rank, key=lambda e: e[0]):
+        print l
+
 #fetch Data
 # for name in getRepoNames():
 #     print(name)
@@ -209,8 +222,17 @@ def getTopTen(date):
 
 # print getDependencies(db['libraries']['laravel_laravel'],'180103') #IMPORTANT!!
 
-getTopTen('160201')
+# getTopTen('190201')
+# print(getUsage('raven_raven','190101'))
 
+aql = " FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage"
+aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
+
+queryResult = db.AQLQuery(aql_count, rawResults=True, batchSize=100)
+print(queryResult[0])
+
+print(getUsage2('php'))
+getTop()
 
 # print getUsage('laravel_laravel','180202') #IMPORTANT!!
 
