@@ -227,12 +227,23 @@ def getTop():
 
 aql = " FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage"
 aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
+aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
 
-queryResult = db.AQLQuery(aql_count, rawResults=True, batchSize=100)
-print(queryResult[0])
+aql_rank = "FOR library IN libraries LET count = LENGTH(( FOR v, e IN 2 INBOUND library GRAPH 'github_test' RETURN DISTINCT e._from )) SORT count DESC LIMIT 10 RETURN{ 'count': count, 'libary':library._key} "
+queryResult = db.AQLQuery(aql_rank, rawResults=True, batchSize=10) #Batch size = top 20
+# print(queryResult)
+for key in queryResult:
+    print(key)
 
-print(getUsage2('php'))
-getTop()
+# def foo():
+#     aql_rank = "FOR library IN libraries LET count = LENGTH(( FOR v, e IN 2 INBOUND library GRAPH 'github_test' COLLECT usage = e._from SORT null RETURN usage )) SORT count  DESC LIMIT 20 RETURN{ 'count': count, 'libary':library._key} "
+#     db.AQLQuery(aql_rank, rawResults=True, batchSize=20)
+#
+# import timeit
+# t = timeit.Timer("foo()", "from graph import foo").timeit(10)
+# print(t)
+# print(getUsage2('php'))
+# getTop()
 
 # print getUsage('laravel_laravel','180202') #IMPORTANT!!
 
