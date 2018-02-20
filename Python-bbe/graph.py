@@ -230,7 +230,7 @@ aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_t
 aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
 
 aql_rank = "FOR library IN libraries LET count = LENGTH(( FOR v, e IN 2 INBOUND library GRAPH 'github_test' RETURN DISTINCT e._from )) SORT count DESC LIMIT 10 RETURN{ 'count': count, 'libary':library._key} "
-queryResult = db.AQLQuery(aql_rank, rawResults=True, batchSize=10) #Batch size = top 20
+queryResult = db.AQLQuery(aql_rank, rawResults=True, batchSize=20) #Batch size = top 20
 # print(queryResult)
 for key in queryResult:
     print(key)
