@@ -9,31 +9,40 @@ from pyArango.collection import Collection, Field, Edges
 from pyArango.graph import Graph, EdgeDefinition
 
 from pyArango.connection import *
+
 conn = Connection(username="root", password="root")
 db = conn["example"]
+db = conn["test_fetch"]
+
 
 class libraries(Collection):
     _fields = {}
+
 
 class revisions(Collection):
     _fields = {
         "date": Field()
     }
 
+
 class uses(Edges):
     _fields = {}
+
 
 class version(Edges):
     _fields = {}
 
-class github_test(Graph) :
+
+class github_test(Graph):
     _edgeDefinitions = (EdgeDefinition("version", fromCollections=["libraries"], toCollections=["revisions"]),
                         EdgeDefinition("uses", fromCollections=["revisions"], toCollections=["libraries"]))
     _orphanedCollections = []
 
+
 if not db.hasGraph(name="github_test"):
     db.createGraph("github_test")
 theGraph = db.graphs["github_test"]
+
 
 # creating documents
 # h1 = theGraph.createVertex('libraries', {"_key": "laravel_laravel"})
@@ -43,10 +52,11 @@ theGraph = db.graphs["github_test"]
 
 
 def getHistory(name, file='composer.json'):
-
-    history = requests.get('https://api.github.com/repos/'+ name + '/commits?path='+ file + '&per_page=50').json()
+    history = requests.get('https://api.github.com/repos/' + name + '/commits?path=' + file + '&per_page=50').json()
     for h in history:
-        yield h['sha'], h['commit']['author']['date'].split('T')[0].replace('-','')[-6:]
+        yield h['sha'], h['commit']['author']['date']
+        # .split('T')[0].replace('-', '')[-6:]
+
 
 def downloadComposerJson(name, SHA_number):
     r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
@@ -60,7 +70,7 @@ def downloadComposerJson(name, SHA_number):
 
 
 def fetchDependencies(name, graph, SHA_number, commit_date):
-    #commit_date yy-mm-dd
+    # commit_date yy-mm-dd
 
     def contains(collection, key):
         """if doc in collection"""
@@ -70,17 +80,17 @@ def fetchDependencies(name, graph, SHA_number, commit_date):
         except KeyError as e:
             return False
 
-    def createVertex(collection,graph, key):
+    def createVertex(collection, graph, key):
         """if doc in collection"""
         try:
             return collection.fetchDocument(key, rawResults=False)
         except KeyError as e:
             return graph
 
-    json = downloadComposerJson(name,SHA_number)
+    json = downloadComposerJson(name, SHA_number)
     if json != 404:
         # print(name)
-        if("require-dev" in json and "require" in json):
+        if ("require-dev" in json and "require" in json):
             # require = {**json["require"],**json["require-dev"]}
             l1 = json["require"]
             require = json["require-dev"]
@@ -88,8 +98,8 @@ def fetchDependencies(name, graph, SHA_number, commit_date):
 
             require.update(l1)
 
-        elif("require" in json):
-            require=json["require"]
+        elif ("require" in json):
+            require = json["require"]
         else:
             print("@@")
             return None
@@ -97,16 +107,15 @@ def fetchDependencies(name, graph, SHA_number, commit_date):
         print("@@")
         return None
 
-
-    containLibrary = contains(db["libraries"],name.replace('/','_'))
-    if not containLibrary: #Wrong. Check if already exists
-        project = graph.createVertex('libraries', {"_key": name.replace('/','_')})  #Check if the name is valid
+    containLibrary = contains(db["libraries"], name.replace('/', '_'))
+    if not containLibrary:  # Wrong. Check if already exists
+        project = graph.createVertex('libraries', {"_key": name.replace('/', '_')})  # Check if the name is valid
     else:
-        project = db["libraries"][name.replace('/','_')]
+        project = db["libraries"][name.replace('/', '_')]
     # if not contains(db["revisions"],SHA_number):
 
-    containSHA = contains(db["revisions"],SHA_number)
-    if not containSHA: #Wrong. Check if already exists
+    containSHA = contains(db["revisions"], SHA_number)
+    if not containSHA:  # Wrong. Check if already exists
         SHA = graph.createVertex('revisions', {"_key": SHA_number, "date": commit_date})  # Replace with SHA
     else:
         SHA = db["revisions"][SHA_number]
@@ -116,21 +125,23 @@ def fetchDependencies(name, graph, SHA_number, commit_date):
 
     for dependency_name, version in require.iteritems():
 
-        containDependency = contains(db["libraries"],dependency_name.replace('/','_').encode("ascii"))
+        containDependency = contains(db["libraries"], dependency_name.replace('/', '_').encode("ascii"))
         if not containDependency:
-            dependency = graph.createVertex('libraries', {"_key":dependency_name.replace('/','_')})
+            dependency = graph.createVertex('libraries', {"_key": dependency_name.replace('/', '_')})
         else:
-            dependency = db["libraries"][dependency_name.replace('/','_')]
+            dependency = db["libraries"][dependency_name.replace('/', '_')]
         if not containSHA or not containDependency:
-            graph.link('uses', SHA, dependency, {"version": version})  #Need version
+            graph.link('uses', SHA, dependency, {"version": version})  # Need version
+
 
 def getRepoNames():
-    #For prototyping purpose
+    # For prototyping purpose
     items = requests.get(
         'https://api.github.com/search/repositories?q=language:php+stars:>500&per_page=50').json()["items"]
     for item in items:
         # names.append(item["full_name"])
         yield item["full_name"].encode('ascii')
+
 
 # getDependencies('laravel/laravel', theGraph, "60de3a5670c4a3bf5fb96433828b6aadd7df0e53")
 # for sha, date in getHistory('facebook/react', file='composer.json'):
@@ -138,11 +149,12 @@ def getRepoNames():
 
 
 
-def fetchData(repoName,graph, fileName='composer.json'):
+def fetchData(repoName, graph, fileName='composer.json'):
     for sha, date in getHistory(repoName, file=fileName):
         print sha
         print date
         fetchDependencies(repoName, graph, sha, date)
+
 
 # getDependencies('domnikl/DesignPatternsPHP',theGraph,'620c9040a89fb2d5a58744f5c186872d9528a769','185020')
 
@@ -161,16 +173,18 @@ def getEarlierDate(date1, date2):
     else:
         return date2
 
+
 def getVersion(edges, date):
     # date = edges[0]["date"]
     revision_date = 0
     sha = None
     for edge in edges:
-        if int(edge["date"])<=int(date):
+        if int(edge["date"]) <= int(date):
             if int(edge["date"]) >= int(revision_date):
                 revision_date = int(edge["date"])
                 sha = edge["_to"]
-    return sha,revision_date
+    return sha, revision_date
+
 
 def getDependencies(document, date):
     revision, revision_date = getVersion(document.getOutEdges(db['version']), date)
@@ -184,7 +198,7 @@ def getDependencies(document, date):
     return dependencies
 
 
-def getUsage(name,date):
+def getUsage(name, date):
     sources = set()
     for edge in db['libraries'][name].getInEdges(db['uses']):
         revision = db['revisions'][edge["_from"].split('/')[1]]
@@ -195,18 +209,21 @@ def getUsage(name,date):
                 continue
     return len(sources)
 
+
 def getTopTen(date):
     rank = []
     for library in db['libraries'].fetchAll():
         rank.append((getUsage(library._key, date), library._key.encode('ascii')))
-    for l in heapq.nlargest(20, rank,key=lambda e:e[0]):
+    for l in heapq.nlargest(20, rank, key=lambda e: e[0]):
         print l
 
+
 def getUsage2(name):
-    aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/"+name+"' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
+    aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/" + name + "' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
 
     queryResult = db.AQLQuery(aql_count, rawResults=True, batchSize=100)
     return queryResult[0]
+
 
 def getTop():
     rank = []
@@ -215,25 +232,23 @@ def getTop():
     for l in heapq.nlargest(20, rank, key=lambda e: e[0]):
         print l
 
-#fetch Data
-# for name in getRepoNames():
-#     print(name)
-#     fetchData(name, theGraph, fileName='composer.json')
+
+
 
 # print getDependencies(db['libraries']['laravel_laravel'],'180103') #IMPORTANT!!
 
 # getTopTen('190201')
 # print(getUsage('raven_raven','190101'))
 
-aql = " FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage"
-aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
-aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
-
-aql_rank = "FOR library IN libraries LET count = LENGTH(( FOR v, e IN 2 INBOUND library GRAPH 'github_test' RETURN DISTINCT e._from )) SORT count DESC LIMIT 10 RETURN{ 'count': count, 'libary':library._key} "
-queryResult = db.AQLQuery(aql_rank, rawResults=True, batchSize=20) #Batch size = top 20
-# print(queryResult)
-for key in queryResult:
-    print(key)
+# aql = " FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage"
+# aql_count = "LET count = ( FOR v, e IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = e._from RETURN usage ) RETURN LENGTH(count)"
+# aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
+#
+# aql_rank = "FOR library IN libraries LET count = LENGTH(( FOR v, e IN 2 INBOUND library GRAPH 'github_test' RETURN DISTINCT e._from )) SORT count DESC LIMIT 10 RETURN{ 'count': count, 'libary':library._key} "
+# queryResult = db.AQLQuery(aql_rank, rawResults=True, batchSize=20)  # Batch size = top 20
+# # print(queryResult)
+# for key in queryResult:
+#     print(key)
 
 # def foo():
 #     aql_rank = "FOR library IN libraries LET count = LENGTH(( FOR v, e IN 2 INBOUND library GRAPH 'github_test' COLLECT usage = e._from SORT null RETURN usage )) SORT count  DESC LIMIT 20 RETURN{ 'count': count, 'libary':library._key} "
@@ -247,7 +262,7 @@ for key in queryResult:
 
 # print getUsage('laravel_laravel','180202') #IMPORTANT!!
 
-    # print revision_date
+# print revision_date
 # for version in db['libraries']['laravel_laravel'].getOutEdges(db['version']):
 #     print version["date"]
 #     print version["_to"]
@@ -260,4 +275,8 @@ for key in queryResult:
 
 # print getDependencies(db['libraries']['laravel_laravel'],'170804') #IMPORTANT!!
 
-
+if __name__ == "__main__":
+    # fetch Data
+    for name in getRepoNames():
+        print(name)
+        fetchData(name, theGraph, fileName='composer.json')
