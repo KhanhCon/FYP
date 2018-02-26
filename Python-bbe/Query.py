@@ -3,15 +3,15 @@ from pyArango.collection import Collection, Field, Edges
 from pyArango.graph import Graph, EdgeDefinition
 
 
-def getTopLibraries(db, graph, libraries, date, numOfLibs):
+def getTopLibraries(db, graph, collection, date, numOfLibs):
     # aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
 
-    aql_rank = "FOR library IN @@libraries " \
-               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p[0].date, @date, 'd', true) > 0 RETURN DISTINCT v )) " \
+    aql_rank = "FOR library IN @@collection " \
+               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(e.date, @date, 'd', true) > 0 RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
                "RETURN{ 'count': count, 'library':library._key} "
-    bindVars = {"@libraries": libraries,
+    bindVars = {"@collection": collection,
                 "graph": graph,
                 "date": date,
                 "numberOfLibraries": int(numOfLibs)}
@@ -33,4 +33,4 @@ if __name__ == "__main__":
     conn = Connection(username="root", password="root")
     db = conn["test_fetch"]
 
-    print(getTopLibraries(db, graph='github_test', libraries='libraries', date='2016-10-27', numOfLibs=10))
+    print(getTopLibraries(db, graph='github_test', collection='libraries', date='2016-10-27', numOfLibs=10))
