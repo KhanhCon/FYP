@@ -12,7 +12,7 @@ from pyArango.connection import *
 
 conn = Connection(username="root", password="root")
 db = conn["example"]
-db = conn["test_fetch"]
+# db = conn["test_fetch"]
 
 
 class libraries(Collection):
@@ -277,6 +277,9 @@ def getTop():
 
 if __name__ == "__main__":
     # fetch Data
-    for name in getRepoNames():
-        print(name)
-        fetchData(name, theGraph, fileName='composer.json')
+    # for name in getRepoNames():
+    #     print(name)
+    #     fetchData(name, theGraph, fileName='composer.json')
+    for k, v in getDependencies(db['libraries']['laravel_laravel'], '161002').iteritems():
+        print(k)
+        print(v)
