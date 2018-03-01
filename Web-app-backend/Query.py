@@ -42,6 +42,6 @@ if __name__ == "__main__":
     conn = Connection(username="root", password="root")
     db = conn["test_fetch"]
 
-    # for i in getDependencies(db, graph='github_test', document='libraries/bcit-ci_CodeIgniter', date='2017-10-02'):
-    #     print(i)
-    print(type(getTopLibraries(db, graph='github_test', collection='libraries', date='2014-10-27', numOfLibs=10)))
+    for i in getDependencies(db, graph='github_test', document='libraries/laravel_laravel', date='2017-10-02'):
+        print(i)
+    # print(type(getTopLibraries(db, graph='github_test', collection='libraries', date='2014-10-27', numOfLibs=10)))

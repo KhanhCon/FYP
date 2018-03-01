@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import Query
 app = Flask(__name__)
+CORS(app)
 
 from pyArango.connection import *
 conn = Connection(username="root", password="root")
