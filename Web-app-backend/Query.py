@@ -44,4 +44,4 @@ if __name__ == "__main__":
 
     for i in getDependencies(db, graph='github_test', document='libraries/laravel_laravel', date='2017-10-02'):
         print(i)
-    # print(type(getTopLibraries(db, graph='github_test', collection='libraries', date='2014-10-27', numOfLibs=10)))
+    print(getTopLibraries(db, graph='github_test', collection='libraries', date='2014-10-27', numOfLibs=10))
