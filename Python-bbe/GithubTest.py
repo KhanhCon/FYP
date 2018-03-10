@@ -59,7 +59,7 @@ def getDependencies(pages=5):
 # 'https://api.github.com/search/repositories?q=language:php+stars:%3E50+created:2013-01-01..2013-09-20'
 # fork:false
 # stars:>50
-#todo: sort result by created_at date
+#todo: sort projects by created_at date
 
 
 
