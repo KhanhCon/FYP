@@ -38,6 +38,7 @@ def getNamesAvatar():
 
 def downloadComposerJson(name, SHA_number):
     r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
+    # print('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
     if r.status_code != 404:
         try:
             return r.json()
@@ -157,7 +158,8 @@ def fetchDependencies(db, name, SHA_number, commit_date):
     # commit_date yy-mm-dd
 
     json = downloadComposerJson(name, SHA_number)
-    if json != 404:
+    # print json
+    if json != 404 and json != None:
         # print(name)
         if ("require-dev" in json and "require" in json):
             l1 = json["require"]
@@ -177,6 +179,7 @@ def fetchDependencies(db, name, SHA_number, commit_date):
     revisionID = inser_revision(db, sha=SHA_number, commitDate=commit_date)
     link_version(db, libID, revisionID)
     for dependency_name, version in require.iteritems():
+        # print dependency_name
         dependencyID = insert_lib(db, dependency_name.replace('/', '_'), fullname=dependency_name)
         link_use(db, revisionID, dependencyID, version=version)
 
@@ -190,7 +193,7 @@ if __name__ == "__main__":
         db_example = conn["example"]
         print(len(jobs))
         for job in jobs:
-            print(job)
+            print job
             # db_fetch.AQLQuery("LET doc = DOCUMENT(\"" + job["_id"] + "\") UPDATE doc WITH {status: processing) } IN jobs_test")
             fetchDependencies(db_example, job["library"], job["_key"], job["date"])
             db_fetch.AQLQuery("LET doc = DOCUMENT(@job)UPDATE doc WITH {status: 'done'} IN jobs_test", bindVars={"job":job["_id"]})

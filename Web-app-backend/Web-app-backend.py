@@ -6,7 +6,7 @@ CORS(app)
 
 from pyArango.connection import *
 conn = Connection(username="root", password="root")
-db = conn["test_fetch"]
+db = conn["example"]
 
 @app.route('/top')
 def topLibraries():

@@ -7,10 +7,10 @@ def getTopLibraries(db, graph, collection, date, numOfLibs):
     # aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
 
     aql_rank = "FOR library IN @@collection " \
-               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(e.date, @date, 'd', true) > 0 RETURN DISTINCT v )) " \
+               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p.vertices[1].date, @date, 'd', true) > 0 RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
-               "RETURN{ 'count': count, 'library':library._key} "
+               "RETURN{ 'count': count, 'library':library.fullname} "
     bindVars = {"@collection": collection,
                 "graph": graph,
                 "date": date,
