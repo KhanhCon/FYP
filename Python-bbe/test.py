@@ -1,20 +1,19 @@
-import shelve
+import os
 
-d = shelve.open("con") # open -- file may get suffix added by low-level
-                          # library
+# print(os.system("composer validate --strict"))
 
 
-# as d was opened WITHOUT writeback=True, beware:
-d['xx'] = range(4)  # this works as expected, but...
-d['xx'].append(5)   # *this doesn't!* -- d['xx'] is STILL range(4)!
+def composerJson_validate(name, SHA_number):
+    import urllib
+    testfile = urllib.URLopener()
+    file = SHA_number + "composer.json"
+    testfile.retrieve('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json', file)
+    import os
+    code = os.system("composer validate " + file + " --strict > NUL 2>&1")
+    os.remove(file)
+    if code != 0:
+        return False
+    return True
 
-# having opened d without writeback=True, you need to code carefully:
-temp = d['xx']      # extracts the copy
-temp.append(5)      # mutates the copy
-d['xx'] = temp      # stores the copy right back, to persist it
-
-# or, d=shelve.open(filename,writeback=True) would let you just code
-# d['xx'].append(5) and have it work as expected, BUT it would also
-# consume more memory and make the d.close() operation slower.
-
-d.close()       # close it
+print os.system("composer validate composer.json --strict --no-check-publish")
+# print composerJson_validate("moneyphp/money", "866e0f1b7857561efe94a3320c2f6cbe8f3a2965")
