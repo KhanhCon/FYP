@@ -4,15 +4,17 @@ import React from 'react'
 // import './App.css'
 // import Table from './components/Table'
 // import ReactTable from 'react-table'
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
 import axios from 'axios'
 import {view, store} from 'react-easy-state'
+import MyHeader from './components/MyHeader'
 import TopRow from './components/TopRow'
 import MostCommonProjects from './components/MostCommonProjects'
 import table from './store/TableStore'
 import homeStore from './store/HomeStore'
 // import Navbar from './components/Navbar'
 // import Search from './components/Search'
+// import './HomePage.css'
+import NavbarInner from './components/NavbarInner'
 
 class Home extends Component {
     constructor (props) {
@@ -22,12 +24,12 @@ class Home extends Component {
         }
     }
 
-    componentDidMount () {
-        axios.get('http://127.0.0.1:5000/top?date=2018-02-01&numberof_libraries=10&collection=libraries&graph=github_test')
+    componentWillMount () {
+        axios.get('http://127.0.0.1:5000/topcurrent?numberof_libraries=10')
             .then(res => {
                 // console.log(res.data)
-                homeStore.PHP.mostPopularProjects = res.data;
-                console.log(homeStore.PHP.mostPopularProjects);
+                homeStore.PHP.mostPopularProjects = res.data
+                console.log(homeStore.PHP.mostPopularProjects)
                 // this.setState(()=>(this.props.projectsPHP.table = res.data));
             })
     };
@@ -35,8 +37,11 @@ class Home extends Component {
     render () {
 
         return (
-            <div class="container" id="page">
-
+            <div class="container-fluid" id="page">
+                <header>
+                    <div class="navbar"></div>
+                    <NavbarInner/>
+                </header>
                 <div class="row" id="page-contents">
                     <div class="col-md-12" id="home_index_page">
                         <div class="showcase">
@@ -70,8 +75,8 @@ class Home extends Component {
                     </div>
                 </div>
             </div>
-        )
+    )
     }
-}
+    }
 
-export default view(Home)
+    export default view(Home)

@@ -67,13 +67,18 @@ def getCommits(name, page, file='composer.json'):
     return history
 
 
-def insertJobs(db, library, sha, date, status):
+def insertJob(db, library, sha, date, status):
     aql = "INSERT { " \
           "library: @library," \
           "_key: @sha, " \
           "date : @date, " \
           "status: @status" \
           "} IN jobs OPTIONS { ignoreErrors: true }"
+    aql = "UPSERT { _key: @sha} " \
+          "INSERT { library: @library, _key: @sha, date:@date, status:@status  }  " \
+          "UPDATE {} IN jobs_update  " \
+          "OPTIONS { waitForSync: true }" \
+          "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
     bindVars = {"library": library,
                 "sha": sha,
                 "date": date,
@@ -82,35 +87,33 @@ def insertJobs(db, library, sha, date, status):
     db.AQLQuery(aql, bindVars=bindVars, rawResults=True)
 
 
-def insert_lib(db, library, fullname, updatedDate, language ):
+def insert_lib(db, library, fullname, updatedDate ):
     aql = "UPSERT { _key: @library} " \
-          "INSERT { _key: @library, fullname: @fullname, updated_date:@updated_date, language:@language }  " \
+          "INSERT { _key: @library, fullname: @fullname, updated_date:@updated_date }  " \
           "UPDATE { updated_date:@updated_date } IN libraries  " \
           "OPTIONS { waitForSync: true }" \
           "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
     # aql = "INSERT { _key: @library } IN libraries OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
     bindVars = {"library": library,
                 "fullname": fullname,
-                "updated_date":updatedDate,
-                "language": language}
+                "updated_date":updatedDate}
     db.AQLQuery(aql, bindVars=bindVars)
     return "libraries/" + library
 
-def insert_dependency(db, library, fullname, language ):
+def insert_dependency(db, library, fullname ):
     aql = "UPSERT { _key: @library} " \
-          "INSERT { _key: @library, fullname: @fullname, updated_date:'', language:@language}  " \
+          "INSERT { _key: @library, fullname: @fullname, updated_date:''}  " \
           "UPDATE {} IN libraries  " \
           "OPTIONS { waitForSync: true }" \
           "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
     # aql = "INSERT { _key: @library } IN libraries OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
     bindVars = {"library": library,
-                "fullname": fullname,
-                "language":language}
+                "fullname": fullname}
     db.AQLQuery(aql, bindVars=bindVars)
     return "libraries/" + library
 
 def inser_revision(db, sha, commitDate):
-    aql = "UPSERT { _key: @key} " \
+    aql = "UPSERT { _key: @key, date: @date} " \
           "INSERT { _key: @key, date: @date }  " \
           "UPDATE { } IN revisions  " \
           "OPTIONS { waitForSync: true }" \
@@ -120,7 +123,6 @@ def inser_revision(db, sha, commitDate):
                 "date": commitDate}
     db.AQLQuery(aql, bindVars=bindVars)
     return "revisions/" + sha
-
 
 def link_version(db, library, revision):
     aql = "UPSERT { _key: @key} " \
@@ -147,7 +149,90 @@ def link_use(db, revision, library, version):
                 "version": version,
                 "key": revision.split('/')[1]+library.split('/')[1]}
     return db.AQLQuery(aql, bindVars=bindVars, rawResults=True, batchSize=100)[0]
+#
+# def link_version(db, library, revision):
+#     aql = "UPSERT { _from: @library, _to : @revision} " \
+#           "INSERT { _from: @library, _to : @revision }  " \
+#           "UPDATE { } IN version  " \
+#           "OPTIONS { waitForSync: true }" \
+#           "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
+#     # aql = "INSERT { _from: @library, _to: @revision } IN version OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
+#     bindVars = {"library": library,
+#                 "revision": revision}
+#     return db.AQLQuery(aql, bindVars=bindVars, rawResults=True, batchSize=100)[0]
+#
+#
+# def link_use(db, revision, library, version):
+#     aql = "UPSERT { _from: @revision, _to : @library} " \
+#           "INSERT { _from: @revision, _to : @library,  version: @version }  " \
+#           "UPDATE { } IN uses  " \
+#           "OPTIONS { waitForSync: true }" \
+#           "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
+#     # aql = "INSERT { _from: @revision, _to: @library, version: @version } IN uses OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
+#     bindVars = {"library": library,
+#                 "revision": revision,
+#                 "version": version}
+#     return db.AQLQuery(aql, bindVars=bindVars, rawResults=True, batchSize=100)[0]
 
+
+def updateJobs(dbName):
+    conn = Connection(username="root", password="root")
+    db = conn[dbName]
+    projects = db.AQLQuery("for library in libraries filter library.update_page != 0 return library",rawResults=True, batchSize=5000)
+    for project in projects:
+        # print project["fullname"]
+        fetchJob(db, project)
+         #0 means no update needed
+    db.AQLQuery("FOR lib in libraries UPDATE lib WITH {update_page: 1} IN @@collection",
+                bindVars={"@collection": "libraries"})
+
+def fetchJob(db, project):
+
+    project_name = project["fullname"]
+    update_page = project["update_page"]
+    print(project_name)
+    if update_page == 0:
+        db.AQLQuery("LET doc = DOCUMENT(@project)UPDATE doc WITH {update_page: 0} IN @@collection",
+                    bindVars={"project": project["_id"],
+                              "@collection": "libraries"})
+        return
+    commits = []
+    for i in range(int(update_page), 11):
+        newCommits = MyGithub.get_commits(project_name, i)
+        if len(newCommits) == 0:
+            break
+        commits = commits + newCommits
+        db.AQLQuery("LET doc = DOCUMENT(@project)UPDATE doc WITH {update_page: @update_page} IN @@collection",
+                    bindVars={"project": project["_id"],
+                              "@collection": "libraries",
+                              "update_page": update_page},)
+        if project["updated_date"]>newCommits[-1]['commit']['author']['date']:
+            print(project["updated_date"])
+            print(newCommits[-1]['commit']['author']['date'])
+            break
+    if len(commits) == 0:
+        db.AQLQuery("LET doc = DOCUMENT(@project)UPDATE doc WITH {update_page: 0} IN @@collection",
+                    bindVars={"project": project["_id"],
+                              "@collection": "libraries"})
+        return
+    # Remove commits on the same day. Take the last one
+    commits.sort(key=lambda commit: commit['commit']['author']['date'])
+    from datetime import datetime
+    validCommits = []
+    for index in range(1, len(commits)):
+        date_format = "%Y-%m-%dT%H:%M:%SZ"
+        a = datetime.strptime(commits[index - 1]['commit']['author']['date'], date_format)
+        b = datetime.strptime(commits[index]['commit']['author']['date'], date_format)
+        delta = b - a
+        if delta.days > 0:
+            validCommits.append(commits[index - 1])
+    validCommits.append(commits[-1])
+
+    for commit in validCommits:
+        insertJob(db, project_name, commit["sha"], commit['commit']['author']['date'], status="pending")
+    db.AQLQuery("LET doc = DOCUMENT(@project)UPDATE doc WITH {update_page: 0} IN @@collection",
+                bindVars={"project": project["_id"],
+                          "@collection": "libraries"})
 
 def fetchJobs(database):
     conn = Connection(username="root", password="root")
@@ -156,6 +241,7 @@ def fetchJobs(database):
     # print(time.time()-requests.get("https://api.github.com/rate_limit").json()["resources"]["core"]["reset"])
     with open('data.json') as data_file:
         projects = json.load(data_file)
+
     for project in projects:
         print(project)
         commits = []
@@ -180,7 +266,7 @@ def fetchJobs(database):
         validCommits.append(commits[-1])
 
         for commit in validCommits:
-            insertJobs(db, project, commit["sha"], commit['commit']['author']['date'], status="pending")
+            insertJob(db, project, commit["sha"], commit['commit']['author']['date'], status="done")
 
 
 def composerJson_validate(name, SHA_number):
@@ -201,7 +287,7 @@ def composerJson_validate(name, SHA_number):
     return True
 
 
-def fetchDependencies(databaseName, name, SHA_number, commit_date, language):
+def fetchDependencies(databaseName, name, SHA_number, commit_date):
     conn = Connection(username="root", password="root")
     db = conn[databaseName]
     # commit_date yy-mm-dd
@@ -235,7 +321,7 @@ def fetchDependencies(databaseName, name, SHA_number, commit_date, language):
         print("@@")
         return None
 
-    libID = insert_lib(db, library=name.replace('/', '_'), fullname=name, updatedDate = commit_date, language=language)
+    libID = insert_lib(db, library=name.replace('/', '_'), fullname=name, updatedDate = commit_date)
     revisionID = inser_revision(db, sha=SHA_number, commitDate=commit_date)
     link_version(db, libID, revisionID)
     try:
@@ -244,7 +330,7 @@ def fetchDependencies(databaseName, name, SHA_number, commit_date, language):
         print("no php in require")
     for dependency_name, version in require.iteritems():
         # print dependency_name
-        dependencyID = insert_dependency(db, dependency_name.replace('/', '_'), fullname=dependency_name, language=language)
+        dependencyID = insert_dependency(db, dependency_name.replace('/', '_'), fullname=dependency_name)
         link_use(db, revisionID, dependencyID, version=version)
     print("Fetched " + name)
 
@@ -256,7 +342,7 @@ def fetchProjects(databaseName, jobs_collection):
     print(len(jobs))
     for job in jobs:
         # print("library date", (job["library"], job["date"]))
-        fetchDependencies(databaseName, job["library"], job["_key"], job["date"], job["language"])
+        fetchDependencies(databaseName, job["library"], job["_key"], job["date"])
         db_fetch.AQLQuery("LET doc = DOCUMENT(@job)UPDATE doc WITH {status: 'done'} IN @@collection",
                           bindVars={"job": job["_id"],
                           "@collection":jobs_collection})
@@ -264,8 +350,10 @@ def fetchProjects(databaseName, jobs_collection):
 if __name__ == "__main__":
     try:
         # fetchJobs("New")
-        fetchProjects("New","jobs")
-        # main()
+        # fetchProjects("New","jobs")
+        updateJobs("New")
+
+    # main()
         # conn = Connection(username="root", password="root")
         # db_fetch = conn["test_fetch"]
         # jobs = db_fetch.AQLQuery("FOR job IN jobs_test FILTER job.status == 'pending' RETURN job", rawResults=True, batchSize=100000)
