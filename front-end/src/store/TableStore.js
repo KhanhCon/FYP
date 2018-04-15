@@ -1,6 +1,6 @@
 import { store } from 'react-easy-state'
 
-const table = store({
+const TableStore = store({
     date: '12',
     num: '',
     table: [],
@@ -9,4 +9,4 @@ const table = store({
 // stores behave like normal JS objects
 // user.name = 'Bob'
 
-export default table
+export default TableStore

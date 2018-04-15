@@ -1,16 +1,24 @@
-import requests
-import json
-import time
-from pyArango.collection import Collection, Field, Edges
-from pyArango.graph import Graph, EdgeDefinition
 import os
-import MyGithub
+import time
 
 from pyArango.connection import *
 
-
+import MyGithub
 # items = requests.get(
 #     'https://api.github.com/search/repositories?q=language%3Aphp+fork%3Afalse+stars:%3E50+created:2013-03-01..2013-01-01&per_page=100&page=1').json()["items"]
+from MyArangodb import insertJobs, insert_lib, insert_dependency, inser_revision, link_version, link_use
+from MyComposer import downloadComposerJson, composerJson_validate
+import os
+import time
+
+from pyArango.connection import *
+
+import MyGithub
+# items = requests.get(
+#'https://api.github.com/search/repositories?q=language%3Aphp+fork%3Afalse+stars:%3E50+created:2013-03-01..2013-01-01&per_page=100&page=1').json()["items"]
+from MyArangodb import insertJobs, insert_lib, insert_dependency, inser_revision, link_version, link_use
+from MyComposer import downloadComposerJson, composerJson_validate
+
 
 def getNames():
     names = []
@@ -22,7 +30,6 @@ def getNames():
         print(i)
     with open('data.json', 'w') as outfile:
         json.dump(names, outfile)
-
 def getNamesAvatar():
     names = {}
     for i in range(1, 11):
@@ -34,18 +41,6 @@ def getNamesAvatar():
         print(i)
     with open('data.json', 'w') as outfile:
         json.dump(names, outfile)
-
-
-def downloadComposerJson(name, SHA_number):
-    r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
-    # print('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
-    if r.status_code != 404:
-        try:
-            return r.json()
-        except ValueError:
-            return 404
-    else:
-        return 404
 
 
 def getCommits(name, page, file='composer.json'):
@@ -65,88 +60,6 @@ def getCommits(name, page, file='composer.json'):
     else:
         history = request.json()
     return history
-
-
-def insertJobs(db, library, sha, date, status):
-    aql = "INSERT { " \
-          "library: @library," \
-          "_key: @sha, " \
-          "date : @date, " \
-          "status: @status" \
-          "} IN jobs OPTIONS { ignoreErrors: true }"
-    bindVars = {"library": library,
-                "sha": sha,
-                "date": date,
-                "status": status
-                }
-    db.AQLQuery(aql, bindVars=bindVars, rawResults=True)
-
-
-def insert_lib(db, library, fullname, updatedDate, language ):
-    aql = "UPSERT { _key: @library} " \
-          "INSERT { _key: @library, fullname: @fullname, updated_date:@updated_date, language:@language }  " \
-          "UPDATE { updated_date:@updated_date } IN libraries  " \
-          "OPTIONS { waitForSync: true }" \
-          "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
-    # aql = "INSERT { _key: @library } IN libraries OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
-    bindVars = {"library": library,
-                "fullname": fullname,
-                "updated_date":updatedDate,
-                "language": language}
-    db.AQLQuery(aql, bindVars=bindVars)
-    return "libraries/" + library
-
-def insert_dependency(db, library, fullname, language ):
-    aql = "UPSERT { _key: @library} " \
-          "INSERT { _key: @library, fullname: @fullname, updated_date:'', language:@language}  " \
-          "UPDATE {} IN libraries  " \
-          "OPTIONS { waitForSync: true }" \
-          "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
-    # aql = "INSERT { _key: @library } IN libraries OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
-    bindVars = {"library": library,
-                "fullname": fullname,
-                "language":language}
-    db.AQLQuery(aql, bindVars=bindVars)
-    return "libraries/" + library
-
-def inser_revision(db, sha, commitDate):
-    aql = "UPSERT { _key: @key} " \
-          "INSERT { _key: @key, date: @date }  " \
-          "UPDATE { } IN revisions  " \
-          "OPTIONS { waitForSync: true }" \
-          "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
-    # aql = "INSERT { _key: @key, date: @date } IN revisions OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
-    bindVars = {"key": sha,
-                "date": commitDate}
-    db.AQLQuery(aql, bindVars=bindVars)
-    return "revisions/" + sha
-
-
-def link_version(db, library, revision):
-    aql = "UPSERT { _key: @key} " \
-          "INSERT { _from: @library, _to : @revision, _key: @key  }  " \
-          "UPDATE { } IN version  " \
-          "OPTIONS { waitForSync: true }" \
-          "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
-    # aql = "INSERT { _from: @library, _to: @revision } IN version OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
-    bindVars = {"library": library,
-                "revision": revision,
-                "key":revision.split('/')[1]}
-    return db.AQLQuery(aql, bindVars=bindVars, rawResults=True, batchSize=100)[0]
-
-
-def link_use(db, revision, library, version):
-    aql = "UPSERT { _key:@key} " \
-          "INSERT { _from: @revision, _to : @library,  version: @version, _key:@key }  " \
-          "UPDATE { } IN uses  " \
-          "OPTIONS { waitForSync: true }" \
-          "RETURN { doc: NEW, type: OLD ? 'update' : 'insert' }"
-    # aql = "INSERT { _from: @revision, _to: @library, version: @version } IN uses OPTIONS { ignoreErrors: true, waitForSync: true } RETURN NEW._id"
-    bindVars = {"library": library,
-                "revision": revision,
-                "version": version,
-                "key": revision.split('/')[1]+library.split('/')[1]}
-    return db.AQLQuery(aql, bindVars=bindVars, rawResults=True, batchSize=100)[0]
 
 
 def fetchJobs(database):
@@ -183,24 +96,6 @@ def fetchJobs(database):
             insertJobs(db, project, commit["sha"], commit['commit']['author']['date'], status="pending")
 
 
-def composerJson_validate(name, SHA_number):
-    import urllib
-    testfile = urllib.URLopener()
-    file = SHA_number + "composer.json"
-    try:
-        testfile.retrieve('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json', file)
-    except IOError: #Sometimes they delete composer.json back in the days
-        print("IO Error")
-        return False
-    import os
-    code = os.system("composer validate " + file + " --no-check-publish ") #Output to NUL to surpress output
-                                                                    # Strict nocheck
-    os.remove(file)
-    if code != 0:
-        return False
-    return True
-
-
 def fetchDependencies(databaseName, name, SHA_number, commit_date, language):
     conn = Connection(username="root", password="root")
     db = conn[databaseName]
@@ -211,7 +106,7 @@ def fetchDependencies(databaseName, name, SHA_number, commit_date, language):
         print("continous integration fail")
         return None
     elif status == "none":
-        if composerJson_validate(name,SHA_number) == False:
+        if composerJson_validate(name, SHA_number) == False:
             print("invalid composerJson")
             return None
 

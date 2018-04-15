@@ -10,16 +10,22 @@
   },
   "babel": {
     "plugins": [
-      "transform-react-jsx"
+      "transform-react-jsx",
+	  "babel-plugin-transform-class-properties"
     ]
   },
   "dependencies": {
+    "moment": "^2.22.0",
+    "query-string": "^6.0.0",
     "react": "^16.2.0",
     "react-bootstrap-table": "^4.3.1",
+    "react-datepicker": "^1.4.1",
+    "react-day-picker": "^7.1.4",
     "react-dom": "^16.2.0",
     "react-highcharts": "^16.0.2",
     "react-paginate": "^5.2.2",
-    "react-router-dom": "^4.2.2"
+    "react-router-dom": "^4.2.2",
+    "react-spinners": "^0.3.2"
   },
   "scripts": {
     "start": "react-scripts start",

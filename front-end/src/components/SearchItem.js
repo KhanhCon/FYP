@@ -10,16 +10,13 @@ class SearchItem extends Component {
 
     render () {
 
-
-
-
         return(
             <div class="well searchable" id="project_662124">
-                <h2 class="title pull-left"><a title="phpunit-selenium2-samples" href="https://www.openhub.net/p/phpunit-selenium2-samples">phpunit-selenium2-samples</a></h2>
+                <h2 class="title pull-left"><a title="phpunit-selenium2-samples" href={"project/"+this.props.project._key}>{this.props.project.fullname}</a></h2>
                 <div class="pull-right">
                     <div class="compare">
                         <form class="sp_form styled form-inline" id="sp_form_phpunit-selenium2-samples" style={{minWidth: 94 + 'px'}}>
-                            <span class="sp_label" title="Compare">Usages: 39</span>
+                            <span class="sp_label" title="Compare">Usages: {this.props.usage}</span>
 
                             <div class="clear_both"></div>
                         </form>

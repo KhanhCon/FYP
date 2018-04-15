@@ -2,6 +2,7 @@ import {Component} from 'react'
 import React from 'react'
 import {view, store} from 'react-easy-state'
 import TopRow from './TopRow'
+import { ClipLoader } from 'react-spinners';
 
 class MostCommonProjects extends Component {
     constructor (props) {
@@ -10,9 +11,10 @@ class MostCommonProjects extends Component {
 
     render () {
         if (this.props.projects.mostPopularProjects.length == 0) {
-            var mostCommonProjects = "LOADING...";
-            var projectsPHP = "LOADING...";
-            var projectsItems = "LOADING....";
+            var projectsItems = <div style={{textAlign:"center"}}><ClipLoader
+                color={'#36D7B7'}
+                loading={true}
+            /></div>
         }
         else {
             // var mostCommonProjects = <MostCommonProjects projects={this.props.projects}/>;

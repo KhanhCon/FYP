@@ -1,7 +1,7 @@
 import {Component} from 'react'
 import React from 'react'
 // import logo from './logo.svg'
-import './App.css'
+// import './App.css'
 // import Table from './components/Table'
 // import ReactTable from 'react-table'
 import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
@@ -10,6 +10,8 @@ import { view, store } from 'react-easy-state'
 import table from './store/TableStore'
 import Navbar from './components/Navbar'
 import Search from './components/Search'
+import DayPicker from 'react-day-picker/DayPickerInput';
+import 'react-day-picker/lib/style.css';
 
 class App extends Component {
     constructor (props) {
@@ -50,8 +52,8 @@ class App extends Component {
         // var libraries = this.state['table']
         return (
             <div className="App">
-
-                <Navbar items={this.props.navBarProp}/>
+                <DayPicker/>
+                {/*<Navbar items={this.props.navBarProp}/>*/}
                 <Search/>
                 Date <input onChange={this.dateChange.bind(this)} type="text"></input>
                 number of libraries <input onChange={this.numChange.bind(this)} type="text"></input>

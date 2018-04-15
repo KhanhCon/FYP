@@ -4,7 +4,7 @@ import Highcharts from 'highcharts/highstock'
 import HighchartsReact from 'highcharts-react-official'
 import axios from 'axios'
 import {view, store} from 'react-easy-state'
-
+import {ClipLoader} from 'react-spinners'
 
 class UsedWithFrequently extends Component {
     constructor (props) {
@@ -16,10 +16,13 @@ class UsedWithFrequently extends Component {
 
     render () {
         if(this.props.relevantProjects.length == 0){
-            var relevantProjects = ""
+            var relevantProjects =  <div style={{textAlign:"left"}}><ClipLoader
+                color={'blue'}
+                loading={true}/>
+            </div>
         }
         else{
-            var relevantProjects = this.props.relevantProjects.map((p) => <a class="tag" itemprop="keywords" href={"/project/"+p.library._id.split('/')[1]}>{p.library.fullname}</a>);
+            var relevantProjects = this.props.relevantProjects.map((p) => <a class="tag" itemprop="keywords" href={"/project/"+p.library._id.split('/')[1]}>{p.library.fullname + ": " + p.number_of_users } </a>);
         }
 
 

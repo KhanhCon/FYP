@@ -4,6 +4,7 @@ import Highcharts from 'highcharts/highstock'
 import HighchartsReact from 'highcharts-react-official'
 import axios from 'axios'
 import {view, store} from 'react-easy-state'
+import { ClimbingBoxLoader } from 'react-spinners';
 
 class UsageChart extends Component {
     constructor (props) {
@@ -14,7 +15,12 @@ class UsageChart extends Component {
         // }
     }
 
-    componentWillMount () {
+    componentDidMount () {
+        const s = document.createElement('script');
+        s.type = 'text/javascript';
+        s.async = false;
+        s.innerHTML = "document.getElementsByClassName('css-10amf0o')[0].classList.remove('css-10amf0o');";
+        document.head.appendChild(s);
         // var libraryID = this.props.projectid
         // console.log(libraryID)
         // axios.get(this.state.url, {
@@ -29,7 +35,11 @@ class UsageChart extends Component {
 
     render () {
         if (this.props.config.length == 0) {
-            var chart = <div></div>
+            var chart = <div style={{textAlign:"center"}}><ClimbingBoxLoader
+                color={'blue'}
+                loading={true}
+            /></div>
+
         }
         else {
             var chart = <HighchartsReact
@@ -41,12 +51,8 @@ class UsageChart extends Component {
 
         return (
             <div class="col-md-4 right_border top_section" itemscope="" itemtype="http://schema.org/Language">
-                <h2 class="center">Usages over time</h2>
-                <div class="col-md-12 manage_padding chart_container">
-                    <div class="col-md-12 manage_padding chart-holder">
+                <h2 className="center">Usages over time</h2>
                         {chart}
-                    </div>
-                </div>
 
             </div>
         )

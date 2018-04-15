@@ -14,7 +14,7 @@ class TopRow extends Component {
                 <a class="top_ten_icon" href="https://www.openhub.net/p/firefox"></a>
                 <div class="top_ten_main">
                     <div class="top_ten_link">
-                        <a href="https://www.openhub.net/p/firefox">{this.props.projects.library}</a>
+                        <a href={"project/"+this.props.projects.library._key}>{this.props.projects.library.fullname}</a>
                     </div>
                     <div class="popular pull-left top_ten_bar" style={{width:this.props.projects.count*200/this.props.total +"%"}}>
                         &nbsp;

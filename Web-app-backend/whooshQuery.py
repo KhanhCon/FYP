@@ -15,7 +15,8 @@ def search(qstring):
     with index.searcher() as searcher:
         searchResult = searcher.search(q, limit=20)
         # result = {r["fullname"] for r in searchResult}
-        ids = {r["id"] for r in searchResult}
+        ids = [r["id"] for r in searchResult]
+        # ids = {r for r in searchResult}
         corrector = searcher.corrector("fullname")
         suggestions = corrector.suggest(qstring, limit=6)
         try:
@@ -24,8 +25,9 @@ def search(qstring):
             0
         # suggestionResults = {s["fullname"] for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)}
         # result = result.union(suggestionResults)
-        ids_suggestion = {s["id"] for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)}
-        ids = ids.union((ids_suggestion))
+        ids_suggestion = [s["id"] for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)]
+        # ids_suggestion = {s for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)}
+        ids = ids+ids_suggestion
 
     return {
             "ids": list(ids),
@@ -36,12 +38,12 @@ if __name__ == "__main__":
     from pyArango.connection import *
 
     conn = Connection(username="root", password="root")
-    db = conn["example"]
+    db = conn["New"]
     # print(search("cms"))
-    s = search("cms")
+    s = search("con")
     ids, searchSuggestions = s["ids"], s["suggestions"]
     result = Query.getUsages(db, ids)
-    print searchSuggestions
+    print result
     # Initialize index
     # index = whoosh.index.open_dir("index_fullname")
     # schema = index.schema

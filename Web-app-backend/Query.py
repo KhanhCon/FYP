@@ -10,7 +10,7 @@ def getTopLibraries(db, graph, collection, date, numOfLibs):
                "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p.vertices[1].date, @date, 'd', true) > 0 RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
-               "RETURN{ 'count': count, 'library':library.fullname} "
+               "RETURN{ 'count': count, 'library':library} "
     bindVars = {"@collection": collection,
                 "graph": graph,
                 "date": date,
@@ -27,7 +27,7 @@ def getCurrentTopLibraries(db, graph, collection, numOfLibs):
                "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
-               "RETURN{ 'count': count, 'library':library.fullname} "
+               "RETURN{ 'count': count, 'library':library} "
     bindVars = {"@collection": collection,
                 "graph": graph,
                 "numberOfLibraries": int(numOfLibs)}
@@ -41,7 +41,7 @@ def getUsages(db, documents):
                "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
-               "RETURN{ 'count': count, 'library':library.fullname} "
+               "RETURN{ 'count': count, 'library':library} "
     bindVars = {"documents": documents,
                 "graph": "github_test",
                 "numberOfLibraries":  len(documents)}

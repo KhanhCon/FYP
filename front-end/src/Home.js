@@ -20,7 +20,8 @@ class Home extends Component {
     constructor (props) {
         super(props)
         this.state = {
-            projectsPHP: []
+            projectsPHP: [],
+            searchQuery: ""
         }
     }
 
@@ -33,6 +34,23 @@ class Home extends Component {
                 // this.setState(()=>(this.props.projectsPHP.table = res.data));
             })
     };
+
+    Search (event) {
+        // this.props.tableProp.num = event.target.value
+        this.setState({searchQuery: event.target.value})
+        console.log(this.state.searchQuery)
+    };
+
+    directToSearch(event){
+        window.location = '/search?query='+this.state.searchQuery
+    }
+
+    _handleKeyPress = (e) => {
+        if (e.key == 'Enter') {
+            console.log("con");
+            window.location = '/search?query='+this.state.searchQuery
+        }
+    }
 
     render () {
 
@@ -55,12 +73,12 @@ class Home extends Component {
                                 </div>
                                 <div class="row">
                                     <div class="col-md-12 billboard_search">
-                                        <form action="https://www.openhub.net/p" class="search" id="search_form">
-                                            <input name="ref" type="hidden" value="homepage"></input>
+                                        <form action={"/search?"} class="search" id="search_form">
+                                            {/*<input name="ref" type="hidden" value="homepage"></input>*/}
                                             <input class="for_search_all_code" id="text" name="query"
-                                                   placeholder="Search Projects..." type="text"></input>
-                                            <span class="image_icon"><img id="icon_text"
-                                                                          src="./home_reduced_files/search_icon2-1726136a5b171fb9d66e992cbdcd4f6ccc4f81cb22b5f555fd5ac089e07a19b2.png"
+                                                   placeholder="Search Projects..." type="text" onChange={this.Search.bind(this)}  value={this.state.searchQuery}></input>
+                                            <span onClick={this.directToSearch.bind(this)} href={"search?query="+this.state.searchQuery} class="image_icon"><img id="icon_text"
+                                                                          src="https://png.icons8.com/search"
                                                                           alt="Search icon2"></img></span>
 
                                             <p class="icon_search"></p>

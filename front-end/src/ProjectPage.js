@@ -15,13 +15,16 @@ import HighchartsReact from 'highcharts-react-official'
 import MastHead from './components/Masthead'
 import UsedWithFrequently from './components/UsedWithFrequently'
 import UsageChart from './components/UsageChart'
+// import 'react-day-picker/lib/style.css';
+import DayPicker from 'react-day-picker'
+
 
 class ProjectPage extends Component {
     constructor (props) {
         super(props)
         this.state = {
-            urlRelevant: 'http://127.0.0.1:5000/relevant',
-            urlUsage: 'http://127.0.0.1:5000/usageovertime',
+            urlRelevant: 'http://192.168.1.65:5000/relevant',
+            urlUsage: 'http://192.168.1.65:5000/usageovertime',
             projectID: 'libraries/' + this.props.match.params.projectid,
             config: [],
             relevantProjects: []

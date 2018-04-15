@@ -33,15 +33,26 @@ def downloadComposerJson(name):
     else:
         return 404
 
-with open('data.json') as data_file:
-    projects = json.load(data_file)
+# with open('data.json') as data_file:
+#     projects = json.load(data_file)
+#
+# for project in projects:
+#     json = downloadComposerJson(project)
+#     if json != 404:
+#         try:
+#             not json["name"]
+#         except KeyError:
+#             print project
 
-for project in projects:
-    json = downloadComposerJson(project)
-    if json != 404:
-        try:
-            not json["name"]
-        except KeyError:
-            print project
+'https://packagist.org/search.json?q=phpunit'
 
+def getPackagistName(name):
+    payload = {'q': name, 'per_page':10}
+    r = requests.get('https://packagist.org/search.json', params=payload)
+    results = r.json()["results"]
+    for result in results:
+            if result["name"] == name:
+                return result
+    return None
 
+print(getPackagistName('phpunit/phpunit'))

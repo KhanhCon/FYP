@@ -30,7 +30,7 @@ index = st.create_index(schema)
 # db = connection["cozy-home"]
 # posts = db.posts
 conn = Connection(username="root", password="root")
-db = conn["example"]
+db = conn["New"]
 aql_getLibraries = "FOR library in libraries RETURN library"
 
 posts = db.AQLQuery(aql_getLibraries, rawResults=True, batchSize=10000)
