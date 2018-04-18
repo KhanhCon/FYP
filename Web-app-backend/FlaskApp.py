@@ -2,9 +2,13 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import Query
 import whooshQuery
+from flask_caching import Cache
+
 
 app = Flask(__name__)
 CORS(app)
+cache = Cache(app, config={'CACHE_TYPE': 'filesystem', 'CACHE_DIR':'cached', 'CACHE_DEFAULT_TIMEOUT':9000000,'CACHE_THRESHOLD': 20000})
+# cache = Cache(app, config={'CACHE_TYPE': 'redis', 'CACHE_REDIS_HOST': '12121.0.0'})
 
 from pyArango.connection import *
 
@@ -13,6 +17,7 @@ db = conn["New"]
 
 
 @app.route('/top')
+@cache.cached(query_string=True)
 def topLibraries():
     # http://127.0.0.1:5000/top?date=2018-10-02&numberof_libraries=10&collection=libraries&graph=github_test
     query = request.args
@@ -22,6 +27,7 @@ def topLibraries():
 
 
 @app.route('/topcurrent')
+@cache.cached(query_string=True)
 def topLibrariesCurrent():
     # http://127.0.0.1:5000/top?date=2018-10-02&numberof_libraries=10&collection=libraries&graph=github_test
     query = request.args
@@ -50,6 +56,7 @@ def searchDocuments():
 
 
 @app.route('/usageovertime')
+@cache.cached(query_string=True)
 def getUsageOverTime():
     # http://127.0.0.1:5000/dependencies?date=2018-10-02&document=libraries/bcit-ci_CodeIgniter&graph=github_test
     query = request.args
@@ -94,4 +101,6 @@ def getRelevantLibraries():
 
 if __name__ == '__main__':
     # print(getUsageOverTime())
+    # cache.clear()
+
     app.run(host='0.0.0.0',debug=False)

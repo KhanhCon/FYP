@@ -32,9 +32,12 @@ def getDependencies(db, graph, document, date):
                 "graph": graph,
                 "date": date,}
 
-    queryResult = db.AQLQuery(aql_dependencies, bindVars=bindVars, rawResults=True)
+    queryResult = db.AQLQuery(aql_dependencies, bindVars=bindVars, rawResults=True, options={"cache":True})
 
     return queryResult  #Need jsontify from Flask
+
+
+
 
 
 if __name__ == "__main__":

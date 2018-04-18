@@ -23,10 +23,11 @@ class ProjectPage extends Component {
     constructor (props) {
         super(props)
         this.state = {
-            urlRelevant: 'http://192.168.1.65:5000/relevant',
-            urlUsage: 'http://192.168.1.65:5000/usageovertime',
+            urlRelevant: 'http://127.0.0.1:5000/relevant',
+            urlUsage: 'http://127.0.0.1:5000/usageovertime',
             projectID: 'libraries/' + this.props.match.params.projectid,
             config: [],
+            relevantProjectsLoading: 'loading',
             relevantProjects: []
         }
     }
@@ -38,7 +39,7 @@ class ProjectPage extends Component {
                 library: this.state.projectID
             }
         }).then(res => {
-            this.setState({relevantProjects: res.data})
+            this.setState({relevantProjects: res.data, relevantProjectsLoading: "done"})
         });
 
         axios.get(this.state.urlUsage, {
@@ -68,7 +69,7 @@ class ProjectPage extends Component {
                             <div class="col-md-12">
                                 <div id="page_contents">
                                     <div class="row row-eq-height margin_top_two project_row">
-                                        <UsedWithFrequently relevantProjects={this.state.relevantProjects} project={this.state.projectID.split("/")[1]}/>
+                                        <UsedWithFrequently loading = {this.state.relevantProjectsLoading} relevantProjects={this.state.relevantProjects} project={this.state.projectID.split("/")[1]}/>
                                         <UsageChart projectid={this.state.projectID} config={this.state.config}/>
                                     </div>
                                 </div>

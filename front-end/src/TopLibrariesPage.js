@@ -17,11 +17,7 @@ import homeStore from './store/HomeStore'
 class TopLibrariesPage extends Component {
     constructor (props) {
         super(props)
-        this.state = {
-            urlTopLibraries: 'http://192.168.1.65:5000/top?date=2018-10-02&numberof_libraries=200',
-            date:'',
-            libraries: []
-        }
+        
     }
 
     componentWillMount () {

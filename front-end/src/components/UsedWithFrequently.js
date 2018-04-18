@@ -15,7 +15,7 @@ class UsedWithFrequently extends Component {
     };
 
     render () {
-        if(this.props.relevantProjects.length == 0){
+        if(this.props.loading == "loading"){
             var relevantProjects =  <div style={{textAlign:"left"}}><ClipLoader
                 color={'blue'}
                 loading={true}/>

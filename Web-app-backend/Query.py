@@ -35,12 +35,28 @@ def getCurrentTopLibraries(db, graph, collection, numOfLibs):
 
     return queryResult #Need jsontify from Flask
 
-def getUsages(db, documents):
-    aql_rank = "FOR id IN @documents LET " \
-               "library = DOCUMENT(id)" \
+def getCurrentTopLibrariesCache(db, graph, collection, numOfLibs):
+    # aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
+
+    aql_rank = "FOR library IN @@collection " \
                "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
+               "RETURN{ 'count': count, 'library':library} "
+    bindVars = {"@collection": collection,
+                "graph": graph,
+                "numberOfLibraries": int(numOfLibs)}
+    # queryResult = db.AQLQuery(aql_rank, bindVars=bindVars, rawResults=True)
+    queryResult = db.aql.execute(aql_rank, bindVars=bindVars, rawResults=True)
+    return queryResult #Need jsontify from Flask
+
+
+def getUsages(db, documents):
+    aql_rank = "FOR doc IN @documents LET " \
+               "library = DOCUMENT(doc.id)" \
+               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph RETURN DISTINCT v )) " \
+               "SORT doc.rank " \
+               "LIMIT @numberOfLibraries " \
                "RETURN{ 'count': count, 'library':library} "
     bindVars = {"documents": documents,
                 "graph": "github_test",

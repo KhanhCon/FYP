@@ -15,19 +15,17 @@ def search(qstring):
     with index.searcher() as searcher:
         searchResult = searcher.search(q, limit=20)
         # result = {r["fullname"] for r in searchResult}
-        ids = [r["id"] for r in searchResult]
+        ids = [{"rank": rank, "id": r["id"]} for rank, r in enumerate(searchResult)]
         # ids = {r for r in searchResult}
         corrector = searcher.corrector("fullname")
-        suggestions = corrector.suggest(qstring, limit=6)
-        try:
-            suggestions.remove(qstring)
-        except ValueError:
-            0
+        suggestions = []
+        if len(ids) == 0:
+            suggestions = corrector.suggest(qstring, limit=6)
         # suggestionResults = {s["fullname"] for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)}
         # result = result.union(suggestionResults)
-        ids_suggestion = [s["id"] for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)]
+        # ids_suggestion = [s["id"] for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)]
         # ids_suggestion = {s for suggest in suggestions for s in searcher.search(qp.parse(unicode(suggest)), limit=5)}
-        ids = ids+ids_suggestion
+        # ids = ids+ids_suggestion
 
     return {
             "ids": list(ids),
@@ -40,10 +38,10 @@ if __name__ == "__main__":
     conn = Connection(username="root", password="root")
     db = conn["New"]
     # print(search("cms"))
-    s = search("con")
+    s = search("laravel")
     ids, searchSuggestions = s["ids"], s["suggestions"]
     result = Query.getUsages(db, ids)
-    print result
+    print(result)
     # Initialize index
     # index = whoosh.index.open_dir("index_fullname")
     # schema = index.schema

@@ -16,7 +16,7 @@ import homeStore from './store/HomeStore'
 // import Search from './components/Search'
 import SearchItem from './components/SearchItem'
 import NavbarInner from './components/NavbarInner'
-import queryString from 'query-string'
+import queryString from './query-string'
 
 import './Search.css'
 import {ClipLoader} from 'react-spinners'
@@ -25,34 +25,48 @@ class Home extends Component {
         super(props)
         this.state = {
             searchResults: [],
-            searchQuery: queryString.parse(this.props.location.search).query
+            suggestions: [],
+            searchQuery: queryString.parse(this.props.location.search).query,
+            loading: "loading"
 
     }
     }
 
     componentWillMount () {
         var query = queryString.parse(this.props.location.search);
-        axios.get('http://192.168.1.65:5000/search', {
+        axios.get('http://127.0.0.1:5000/search', {
             params: {
                 query: query.query
             }
         })
             .then(res => {
-                this.setState({searchResults: res.data.result})
+                this.setState({searchResults: res.data.result, suggestions: res.data.suggestions , loading:"done"})
+                console.log(this.state)
                 // console.log(this.state.searchResults)
             })
     };
 
     render () {
-        if(this.state.searchResults.length == 0){
+        if(this.state.loading == "loading"){
             var searchItems =
                 <div style={{textAlign:"left"}}><ClipLoader
                 color={'black'}
                 loading={true}/></div>;
         }
-        else{
+        else if(this.state.searchResults.length > 0){
             console.log(this.state.searchResults);
             var searchItems = this.state.searchResults.map((p) =>  <SearchItem project={p.library} usage={p.count}/> );
+        }
+        else if(this.state.searchResults.length == 0){
+
+            var suggestions = this.state.suggestions.map((p) => <a href={"/search?query=" + p}>   {p}   </a>) ;
+
+
+            var searchItems = <div class="inset advanced_search_tips">
+                <h4>Your search - <strong>{this.state.searchQuery}</strong> - did not match anything.</h4>
+                <p>Did you mean: {suggestions}</p>
+            </div> ;
+
         }
         return (
 
