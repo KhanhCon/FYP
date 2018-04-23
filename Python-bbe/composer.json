@@ -1,13 +1,11 @@
 {
   "name": "craftcms/cms",
   "description": "Craft CMS",
-
   "keywords": [
     "cms",
     "craftcms",
     "yii2"
   ],
-
   "license": "proprietary",
   "support": {
     "email": "support@craftcms.com",
