@@ -56,9 +56,19 @@ def searchDocuments():
     query = request.args
     s = whooshQuery.search(qstring=query['query'])
     ids, searchSuggestions = s["ids"], s["suggestions"]
-    result = arangodbQuery.getUsages(db, ids)
+    result = arangodbQuery.getUsages(db, ids,graph=arangograph)
     return jsonify({"result": list(result),
                     "suggestions": searchSuggestions})
+
+
+@app.route('/compare')
+def getCompare():
+    # http://127.0.0.1:5000/dependencies?date=2018-10-02&document=libraries/bcit-ci_CodeIgniter&graph=github_test
+    query = request.args
+    json = { "name": query['name'],
+            "id": "compare",
+            "data": list(arangodbQuery.getUsageOverTime(db, document=query["library"]))}
+    return jsonify(json)
 
 
 @app.route('/usageovertime')

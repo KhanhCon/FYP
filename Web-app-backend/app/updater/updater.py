@@ -44,29 +44,11 @@ def fetchGraph(db):
         executeJob(db, job)
 
 
-
-
-
-
-    # libID = insert_lib(db, library=project.replace('/', '_'), fullname=project, updatedDate = commit_date)
-    # revisionID = inser_revision(db, sha=SHA_number, commitDate=commit_date)
-    # link_version(db, libID, revisionID)
-    # try:
-    #     del require["php"]
-    # except KeyError:
-    #     print("no php in require")
-    # for dependency_name, version in require.iteritems():
-    #     # print dependency_name
-    #     dependencyID = insert_dependency(db, dependency_name.replace('/', '_'), fullname=dependency_name)
-    #     link_use(db, revisionID, dependencyID, version=version)
-    # print("Fetched " + project)
-
-
 if __name__ == "__main__":
     from pyArango.connection import *
     conn = Connection(username="root", password="root")
     db = conn["TEST"]
-    # fetchJobs(db)
+    fetchJobs(db)
     fetchGraph(db)
 
     # 'jobs/c8499db3fd515af4018d655f0cb1c72c8fa07eec'

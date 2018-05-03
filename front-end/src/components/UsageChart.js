@@ -9,10 +9,6 @@ import { ClimbingBoxLoader } from 'react-spinners';
 class UsageChart extends Component {
     constructor (props) {
         super(props)
-        // this.state = {
-        //     url: 'http://127.0.0.1:5000/usageovertime',
-        //     config: []
-        // }
     }
 
     componentDidMount () {
@@ -21,16 +17,6 @@ class UsageChart extends Component {
         s.async = false;
         s.innerHTML = "document.getElementsByClassName('css-10amf0o')[0].classList.remove('css-10amf0o');";
         document.head.appendChild(s);
-        // var libraryID = this.props.projectid
-        // console.log(libraryID)
-        // axios.get(this.state.url, {
-        //     params: {
-        //         library: libraryID
-        //     }
-        // }).then(res => {
-        //     this.setState({config: res.data})
-        //     console.log(res.data)
-        // })
     };
 
     render () {
@@ -52,8 +38,7 @@ class UsageChart extends Component {
         return (
             <div class="col-md-4 right_border top_section" itemscope="" itemtype="http://schema.org/Language">
                 <h2 className="center">Usages over time</h2>
-                        {chart}
-
+                {chart}
             </div>
         )
     }

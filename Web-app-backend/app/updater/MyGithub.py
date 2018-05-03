@@ -10,15 +10,15 @@ s = requests.Session()
 s.auth = (os.getenv("ghusername"), os.getenv("ghpassword"))
 
 
-def get_composerjson(name, SHA_number):
-    r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
-    if r.status_code != 404:
-        try:
-            return r.json()
-        except ValueError:
-            return 404
-    else:
-        return 404
+# def get_composerjson(name, SHA_number):
+#     r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
+#     if r.status_code != 404:
+#         try:
+#             return r.json()
+#         except ValueError:
+#             return 404
+#     else:
+#         return 404
 
 
 # def get_commits(name, page, file='composer.json', since='2012-03-06T22:42:09Z'):
@@ -60,16 +60,11 @@ def get_commit_at_page(name, page, file='composer.json', since="2012-03-06T22:42
         return []
     return history
 
-def get_commits(name, file='composer.json', since='2012-03-06T22:42:09Z'):
-    commits = []
-    for page in range(1, 11):
-        newCommits = get_commit_at_page(name,file=file, page=page, since=since)
-        if len(newCommits) == 0:
-            break
-        commits = commits + newCommits
+#For commits on the same day, take only the last one
+def remove_commits_same_day(commits):
     if len(commits) == 0:
-        return []
-    commits.sort(key=lambda commit: commit['commit']['author']['date'])
+        return [] #return empty list if commits is empty
+    commits.sort(key=lambda commit: commit['commit']['author']['date']) #sort commits by date for processing
     from datetime import datetime
     validCommits = []
     for index in range(1, len(commits)):
@@ -79,8 +74,18 @@ def get_commits(name, file='composer.json', since='2012-03-06T22:42:09Z'):
         delta = b - a
         if delta.days > 0:
             validCommits.append(commits[index - 1])
-    validCommits.append(commits[-1])
+    validCommits.append(commits[-1]) #Append last commit into new commits
     return validCommits
+
+def get_commits(name, file='composer.json', since='2012-03-06T22:42:09Z'):
+    commits = []
+    for page in range(1, 11):
+        newCommits = get_commit_at_page(name,file=file, page=page, since=since)
+        if len(newCommits) == 0:
+            break
+        commits = commits + newCommits
+
+    return remove_commits_same_day(commits)
 
 def continous_integration_status(name, SHA_number):
     request = s.get('https://api.github.com/repos/' + name + '/statuses/' + SHA_number)

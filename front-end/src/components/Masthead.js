@@ -4,7 +4,7 @@ import Highcharts from 'highcharts/highstock'
 import HighchartsReact from 'highcharts-react-official'
 import axios from 'axios'
 import {view, store} from 'react-easy-state'
-
+import APIstore from './store/APIstore'
 
 class Masthead extends Component {
     constructor (props) {
@@ -25,7 +25,7 @@ class Masthead extends Component {
                 <div class="col-md-11" id="project_header">
                     <div class="pull-left project_title">
                         <h1 class="float_left" itemprop="name">
-                            <a style={{color: + 'black'}} itemprop="url" href={"/project/"+this.props.project}>{this.props.project}</a>
+                            <a style={{color: + 'black'}} itemprop="url" href={"/library/"+this.props.library._key}>{this.props.library[APIstore.libraryName]}</a>
                         </h1>
 
                     </div>

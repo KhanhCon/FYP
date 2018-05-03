@@ -11,7 +11,10 @@ class ToplibrariesTableRow extends Component {
     }
 
     render () {
+        var name = 'name';
         return (
+
+
 
             <tr>
                 <td class="center">
@@ -21,7 +24,7 @@ class ToplibrariesTableRow extends Component {
                     {/*<img style="width:32px; height:32px; border:0 none;" itemprop="image" alt="Nextcloud" src="https://s3.amazonaws.com/cloud.ohloh.net/attachments/90185/19211038_small.">*/}
                 </td>
                 <td>
-                    <a href={"/project/"+this.props.data.library._key}>{this.props.data.library.fullname}</a>
+                    <a  target="_blank" href={"/library/"+this.props.data.library._key}>{this.props.data.library.name}</a>
                 </td>
                 <td class="center">
 

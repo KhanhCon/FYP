@@ -32,7 +32,7 @@ class MostCommonProjects extends Component {
         return(
             <div class="landing col-md-12 last_section">
                 <div class="col-md-6 top_ten">
-                    <h3 class="most_popular_projects common">Most Popular {this.props.projects.language} Projects</h3>
+                    <h3 class="most_popular_projects common">Most Popular {this.props.projects.language} libraries</h3>
                     {projectsItems}
                 </div>
             </div>

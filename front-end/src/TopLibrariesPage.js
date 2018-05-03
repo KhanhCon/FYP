@@ -17,19 +17,17 @@ import homeStore from './store/HomeStore'
 class TopLibrariesPage extends Component {
     constructor (props) {
         super(props)
-        
+
     }
 
     componentWillMount () {
-
-
 
         axios.get('http://127.0.0.1:5000/topcurrent', {
             params: {
                 numberof_libraries:100
             }
         }).then(res => {
-            console.log(res.data)
+            // console.log(res.data)
             TopLibrariesStore.libraries = res.data
         })
 

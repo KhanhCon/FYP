@@ -1,8 +1,9 @@
 import { store } from 'react-easy-state'
 
 const TopLibrariesStore = store({
-    urlTopLibraries: 'http://192.168.1.65:5000/top',
-    date:'',
+    urlTopLibraries: 'http://127.0.0.1:5000/top',
+    firstShaDate:'',
+    date: '',
     libraries: []
 })
 

@@ -18,6 +18,20 @@ class NavbarInner extends Component {
 
 
     render () {
+
+        if(this.props.searchBar){
+            var searchBarComponent = <form action={"/search?"}>
+                <input placeholder="Search..." name={"query"}  type="text" onChange={this.Search.bind(this)}  value={this.state.searchQuery}></input>
+                {/*<input class="search hidden" id="search_type" name="search_type" type="hidden" value="projects"></input>*/}
+                <button class="submit no_padding">
+                    <div class="icon-search global_top_search_icon"></div>
+                </button>
+            </form>
+        }
+        else{
+            var searchBarComponent = null
+        }
+
         return (
             <div id="navbar-inner">
                 <div id="nav-top-bar">
@@ -36,13 +50,7 @@ class NavbarInner extends Component {
                                         {/*<span class="selection" val="p">Projects</span>*/}
 
                                     {/*</a>*/}
-                                    <form action={"/search?"}>
-                                    <input placeholder="Search..." name={"query"}  type="text" onChange={this.Search.bind(this)}  value={this.state.searchQuery}></input>
-                                        {/*<input class="search hidden" id="search_type" name="search_type" type="hidden" value="projects"></input>*/}
-                                    <button class="submit no_padding">
-                                        <div class="icon-search global_top_search_icon"></div>
-                                    </button>
-                                    </form>
+                                    {searchBarComponent}
                                         {/*<a class="" href={"/search?query="+this.state.searchQuery} >*/}
                                                 {/*<img src={'https://png.icons8.com/search'}></img>*/}
                                             {/*</a>*/}
@@ -56,5 +64,5 @@ class NavbarInner extends Component {
         )
     }
 }
-
+NavbarInner.defaultProps = {searchBar: true};
 export default view(NavbarInner)

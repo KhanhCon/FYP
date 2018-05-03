@@ -32,17 +32,14 @@ def composerJson_validate(github_fullname, SHA_number):
 def getDependenciesNames(github_name, SHA_number):
     status = MyGithub.continous_integration_status(name=github_name, SHA_number=SHA_number)
     if status == "fail":
-        print("continous integration fail")
         return None
     elif status == "none":
         if composerJson_validate(github_name, SHA_number) == False:
-            print("invalid composerJson")
             return None
 
     json = downloadComposerJson(github_name, SHA_number)
 
     if json is not None and json:
-        # print(name)
         if "require-dev" in json and "require" in json:
             l1 = json["require"]
             require = json["require-dev"]
@@ -53,10 +50,8 @@ def getDependenciesNames(github_name, SHA_number):
         elif "require-dev" in json:
             require = json["require-dev"]
         else:
-            print("@@")
             require = None
     else:
-        print("@@")
         require = None
     try:
         del require["php"]

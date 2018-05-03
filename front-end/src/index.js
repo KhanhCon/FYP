@@ -5,7 +5,7 @@ import App from './App';
 import Home from './Home'
 import registerServiceWorker from './registerServiceWorker';
 import Search from './Search'
-import ProjectPage from './ProjectPage'
+import ProjectPage from './LibraryPage'
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import table from './store/TableStore'
@@ -18,7 +18,7 @@ ReactDOM.render(
         <div>
             <Route exact path='/' render={() => <Home/>}/>
             <Route exact path='/search' component={Search} />
-            <Route exact path='/project/:projectid' component={ProjectPage} />
+            <Route exact path='/library/:projectid' component={ProjectPage} />
             <Route exact path='/top' component={TopLibrariesPage} />
             <Route exact path='/test' render = {() => <App tableProp={TableStore}/>} />
 

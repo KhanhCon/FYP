@@ -7,10 +7,16 @@ def getTopLibraries(db, graph, collection, date, numOfLibs):
     # aql_count = "LET count = ( FOR v IN 2 INBOUND 'libraries/php' GRAPH 'github_test' COLLECT usage = v._key RETURN usage ) RETURN LENGTH(count)"
 
     aql_rank = "FOR library IN @@collection " \
-               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p.vertices[1].date, @date, 'd', true) > 0 RETURN DISTINCT v )) " \
+               "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p.vertices[1].date, @date, 'd', true) >= 0 RETURN DISTINCT v )) " \
                "SORT count " \
                "DESC LIMIT @numberOfLibraries " \
                "RETURN{ 'count': count, 'library':library} "
+    # aql_rank = "let cheat = (document('cheat/1').top200) let a = @@collection " \
+    #            "FOR id IN cheat let library = document(id) " \
+    #            "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p.vertices[1].date, @date, 'd', true) > 0 RETURN DISTINCT v )) SORT count DESC LIMIT @numberOfLibraries RETURN library.name"
+
+    # aql_rank = "let a = @@collection FOR libraryid IN (document('libraries/l').l) LET library = (document(libraryid)) LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph FILTER DATE_DIFF(p.vertices[1].date, @date, 'd', true) >= 0 RETURN DISTINCT v )) SORT count DESC LIMIT @numberOfLibraries RETURN{ 'count': count, 'library':library} "
+
     bindVars = {"@collection": collection,
                 "graph": graph,
                 "date": date,
@@ -51,15 +57,15 @@ def getCurrentTopLibrariesCache(db, graph, collection, numOfLibs):
     return queryResult #Need jsontify from Flask
 
 
-def getUsages(db, documents):
+def getUsages(db, documents, graph):
     aql_rank = "FOR doc IN @documents LET " \
                "library = DOCUMENT(doc.id)" \
                "LET count = LENGTH(( FOR v, e, p IN 2 INBOUND library GRAPH @graph RETURN DISTINCT v )) " \
                "SORT doc.rank " \
                "LIMIT @numberOfLibraries " \
-               "RETURN{ 'count': count, 'library':library} "
+               "RETURN{'rank':doc.rank, 'count': count, 'library':library} "
     bindVars = {"documents": documents,
-                "graph": "github_test",
+                "graph": graph,
                 "numberOfLibraries":  len(documents)}
     queryResult = db.AQLQuery(aql_rank, bindVars=bindVars, rawResults=True)
 
@@ -70,7 +76,7 @@ def getDependencies(db, graph, document, date):
                        "FOR library, use_edge " \
                        "IN 1 OUTBOUND " \
                        "revision " \
-                       "GRAPH 'github_test' " \
+                       "GRAPH 'github' " \
                        "RETURN {'library':library._id, 'version':use_edge.version}"
 
     bindVars = {"document": document,
@@ -81,7 +87,7 @@ def getDependencies(db, graph, document, date):
 
     return queryResult  #Need jsontify from Flask
 
-def getUsageOverTime(db, document, date='2015-01-01', graph='github'):
+def getUsageOverTime(db, document, date='2015-06-01', graph='github'):
     aql_usage = "LET startDate = @date " \
                 "LET diff = DATE_DIFF(startDate, DATE_NOW(), 'm') " \
                 "LET dates = (FOR i IN 1..diff return DATE_ADD(startDate, i, 'm')) " \
@@ -113,7 +119,7 @@ def getRelevantLibrary(db, document, graph='github'):
     return queryResult
 
 def getFirstShaDate(db):
-    aql_relevant = "LET shas = (FOR sha IN revisions RETURN sha.date) return shas[0]"
+    aql_relevant = "LET shas = (FOR sha IN revisions sort sha.date RETURN sha.date) return shas[0]"
     queryResult = db.AQLQuery(aql_relevant, rawResults=True)
     return queryResult
 

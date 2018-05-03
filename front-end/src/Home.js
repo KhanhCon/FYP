@@ -58,7 +58,7 @@ class Home extends Component {
             <div class="container-fluid" id="page">
                 <header>
                     <div class="navbar"></div>
-                    <NavbarInner/>
+                    <NavbarInner searchBar={false}/>
                 </header>
                 <div class="row" id="page-contents">
                     <div class="col-md-12" id="home_index_page">
@@ -67,7 +67,7 @@ class Home extends Component {
                                 <div class="row">
                                     <div class="col-md-12">
                                         <h1 class="discover_msg">
-                                            Discover, Track and Compare Open Source
+                                            Discover Open Source Libraries
                                         </h1>
                                     </div>
                                 </div>
@@ -76,7 +76,7 @@ class Home extends Component {
                                         <form action={"/search?"} class="search" id="search_form">
                                             {/*<input name="ref" type="hidden" value="homepage"></input>*/}
                                             <input class="for_search_all_code" id="text" name="query"
-                                                   placeholder="Search Projects..." type="text" onChange={this.Search.bind(this)}  value={this.state.searchQuery}></input>
+                                                   placeholder="Search Libraries..." type="text" onChange={this.Search.bind(this)}  value={this.state.searchQuery}></input>
                                             <span onClick={this.directToSearch.bind(this)} href={"search?query="+this.state.searchQuery} class="image_icon"><img id="icon_text"
                                                                           src="https://png.icons8.com/search"
                                                                           alt="Search icon2"></img></span>
