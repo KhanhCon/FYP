@@ -1,25 +1,32 @@
 Install Arangodb and set username: root and password:root
-Install Composer and Python 2.7.11
-Install the dependencies by running:
+Install Composer 1.5.2 and Python 2.7.11
 
-python -m pip install -r requirements.txt
+Install pip for python:
+	Download get-pip.py at https://bootstrap.pypa.io/get-pip.py
+	run get-pip.py:
+		python get-pip.py
+
+
+Install the dependencies by running:
+	
+	python -m pip install -r requirements.txt
 
 Go into folder "IMPORT DATA" then execute
-
-python arango_setup.py
+	
+	python arango_setup.py
 
 To start up Flask and web app run(You need to have port 5000 and 9000 available):
 
-python RocketServer.py
-python TwistedServer.py
+	python RocketServer.py
+	python TwistedServer.py
 
 or
 
-python WebappSetup.py 
+	python WebappSetup.py 
 
 Website is at localhost:9000
 
 
 To fetch new data, run:
 
-python Fetcher.py
+	python Fetcher.py
