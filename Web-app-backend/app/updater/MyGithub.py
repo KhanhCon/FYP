@@ -7,8 +7,8 @@ import ast
 import datetime
 
 s = requests.Session()
-s.auth = (os.getenv("ghusername"), os.getenv("ghpassword"))
-
+# s.auth = (os.getenv("ghusername"), os.getenv("ghpassword"))
+s.headers.update({'Authorization': 'token de81d318fde0bfbca13994ce55261883c056d4ea'})
 
 # def get_composerjson(name, SHA_number):
 #     r = requests.get('https://raw.githubusercontent.com/' + name + '/' + SHA_number + '/composer.json')
@@ -88,6 +88,7 @@ def get_commits(name, file='composer.json', since='2012-03-06T22:42:09Z'):
     return remove_commits_same_day(commits)
 
 def continous_integration_status(name, SHA_number):
+    print('https://api.github.com/repos/' + name + '/statuses/' + SHA_number)
     request = s.get('https://api.github.com/repos/' + name + '/statuses/' + SHA_number)
     if request.status_code == 403:  # rate limit code
         print("limit")
@@ -99,6 +100,7 @@ def continous_integration_status(name, SHA_number):
     else:
         statuses = request.json()
 
+    print statuses
     if len(statuses)==0:
         return "none"
     else:

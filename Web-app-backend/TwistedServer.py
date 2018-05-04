@@ -5,7 +5,7 @@ import os
 
 def twisted_server():
     dirname = os.path.dirname(os.path.abspath(__file__))
-    resource = File(os.path.join(dirname,'app/reactApp'))
+    resource = File(os.path.join(dirname,'app/reactApp/build'))
     factory = Site(resource)
     PORT = 9000
     endpoint = endpoints.TCP4ServerEndpoint(reactor, PORT)

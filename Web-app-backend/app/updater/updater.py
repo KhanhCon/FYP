@@ -36,7 +36,7 @@ def executeJob(db, job):
     db.AQLQuery(aql_job_set_done, bindVars={'jobID': job["_id"]}, batchSize=1, rawResults=True)
 
 def fetchGraph(db):
-    aql_jobs_pending = "for job in jobs filter job.status == 'pending' return job"
+    aql_jobs_pending = "for job in jobs filter job.status == 'pending' sort return job"
     jobs_pending = db.AQLQuery(aql_jobs_pending, batchSize=20000, rawResults=True)
     print len(jobs_pending)
     for job in jobs_pending:

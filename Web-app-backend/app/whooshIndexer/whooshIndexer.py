@@ -20,10 +20,8 @@ from bson.objectid import ObjectId
 #
 # # Initialize index
 # index = create_in("index", schema)
-
-
-conn = Connection(username="root", password="root")
-db = conn["TEST"]
+# conn = Connection(username="root", password="root")
+# db = conn["TEST"]
 
 
 def indexLibraries(db,index_field="name", index_folder = "index_fullname"):
