@@ -1,4 +1,4 @@
-from app.updater.updater import fetchJobs, fetchGraph
+from app.Fetcher.Fetcher import fetchJobs, fetchGraph
 from app.whooshIndexer.whooshIndexer import indexLibraries
 import os, subprocess
 
@@ -10,7 +10,7 @@ if __name__ == "__main__":
     try:
         print("Fetching jobs")
         fetchingGraph = False
-        fetchJobs(db)
+        # fetchJobs(db)
         print("Fetching Graph")
         fetchingGraph = True
         fetchGraph(db)
