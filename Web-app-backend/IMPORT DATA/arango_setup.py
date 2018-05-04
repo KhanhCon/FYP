@@ -53,3 +53,6 @@ for collection in collections:
         data = f.read()
         url = "%s/import" % (db.URL)
         r = conn.session.post(url, params={"collection": collection["name"], "type": "auto"}, data=data)
+
+from app.whooshIndexer.whooshIndexer import indexLibraries
+indexLibraries(db, index_field="name", index_folder="index_fullname")

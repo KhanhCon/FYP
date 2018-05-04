@@ -26,7 +26,8 @@ from bson.objectid import ObjectId
 
 def indexLibraries(db,index_field="name", index_folder = "index_fullname"):
     schema = Schema(fullname=TEXT(analyzer=StemmingAnalyzer(), spelling=True), id=TEXT(stored=True))
-    st = FileStorage(index_folder).create()
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    st = FileStorage(os.path.join(dirname, index_folder)).create()
     index = st.create_index(schema)
     posts = db.AQLQuery("FOR library in libraries RETURN library", rawResults=True, batchSize=10000)
 

@@ -16,8 +16,7 @@ if __name__ == "__main__":
         fetchGraph(db)
     finally:
         if fetchingGraph == True:
-            dirname = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app/whooshIndexer')
-            indexLibraries(db, index_field="name", index_folder=os.path.join(dirname, "index_fullname"))
+            indexLibraries(db, index_field="name", index_folder="index_fullname")
 
 
 
