@@ -25,6 +25,7 @@ from bson.objectid import ObjectId
 
 
 def indexLibraries(db,index_field="name", index_folder = "index_fullname"):
+    print("whoosh Indexing")
     schema = Schema(fullname=TEXT(analyzer=StemmingAnalyzer(), spelling=True), id=TEXT(stored=True))
     dirname = os.path.dirname(os.path.abspath(__file__))
     st = FileStorage(os.path.join(dirname, index_folder)).create()
